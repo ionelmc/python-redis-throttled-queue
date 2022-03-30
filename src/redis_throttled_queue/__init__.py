@@ -6,6 +6,7 @@ from logging import getLogger
 from pathlib import Path
 from typing import Union
 
+from packaging.version import Version
 from redis.client import StrictRedis
 
 logger = getLogger(__name__)
@@ -57,6 +58,10 @@ class ThrottledQueue(object):
         self._resolution = resolution
         self._count_key = f"{self._prefix}:total"
         self.register_scripts(redis_client)
+        info = redis_client.info()
+        version = info["redis_version"]
+        if Version(version) < Version('6.2.0'):
+            raise RuntimeError(f"Redis 6.2 is the minimum version supported. The server reported version {version!r}.")
 
     def push(self, name: str, data: Union[str, bytes], *, priority: int = 0):
         if ":" in name:
