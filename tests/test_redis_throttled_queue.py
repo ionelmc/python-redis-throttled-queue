@@ -49,16 +49,16 @@ def test_extras(redis_conn: StrictRedis, redis_monitor):
     queue.push('cccccc', 'c1', priority=-1)
     queue.push('aaaaaa', 'aX', priority=11)
     queue.push('aaaaaa', 'aY', priority=-1)
-    items = ','.join(str(queue.pop()) for _ in range(15))
+    items = ','.join(str(queue.pop()) for _ in range(13))
 
-    assert items in ['b0,aX,b1,a1,b2,a2,b3,a3,b4,c0,c1,None,None,None,None']
+    assert items in ['b0,aX,b1,a1,b2,a2,b3,a3,b4,c0,c1,None,None']
 
-    sleep(2)
+    sleep(1)
 
-    items = ','.join(str(queue.pop()) for _ in range(15))
-    assert items in ['a4,b5,a5,None,None,None,None,None,None,None,None,None,None,None,None,None']
+    items = ','.join(str(queue.pop()) for _ in range(12))
+    assert items in ['a4,b5,a5,b6,a6,b7,a7,b8,a8,b9,None,None']
 
-    sleep(2)
+    sleep(1)
 
-    items = ','.join(str(queue.pop()) for _ in range(15))
-    assert items in ['a5,b6,None,None,None,None,None,None,None,None,None,None,None,None,None']
+    items = ','.join(str(queue.pop()) for _ in range(4))
+    assert items in ['a9,aY,None,None']

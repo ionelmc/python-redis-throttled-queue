@@ -21,21 +21,20 @@ local usage_key = PREFIX .. ":usage:" .. WINDOW
 local total_key = PREFIX .. ":total"
 local names_key = PREFIX .. ":names"
 
-local name = redis.call("ZRANGE", usage_key, 0, "(" .. LIMIT, "BYSCORE", "LIMIT", 0, 1)[1]
-redis.call('SET', 'DEBUG', 'ZRANGE ' .. usage_key .. ' => ' .. tostring(name))
-if name ~= nil then
+local names = redis.call("ZRANGE", usage_key, 0, "(" .. LIMIT, "BYSCORE")
+for _, name in ipairs(names) do
+    redis.call('SET', 'DEBUG', 'ZRANGE ' .. usage_key .. ' => ' .. tostring(name))
     local queue_key = PREFIX .. ":queue:" .. name
-    local result = redis.call("ZPOPMAX", queue_key)
-    redis.call('SET', 'DEBUG', 'ZPOPMAX ' .. queue_key .. ' => #' .. tostring(#result))
-    if #result ~= 0 then
+    local highest_item = redis.call("ZPOPMAX", queue_key)
+    redis.call('SET', 'DEBUG', 'ZPOPMAX ' .. queue_key .. ' => #' .. tostring(#highest_item))
+    if #highest_item ~= 0 then
         redis.call("ZINCRBY", usage_key, 1, name)
         redis.call("EXPIRE", usage_key, RESOLUTION)
         redis.call("DECR", total_key)
-        redis.call('SET', 'DEBUG', '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   returning: ' .. tostring(result[1]))
-        return result[1]
+        redis.call('SET', 'DEBUG', '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   returning: ' .. tostring(highest_item[1]))
+        return highest_item[1]
     end
 end
-
 
 local cursor = "0"
 repeat
@@ -55,17 +54,17 @@ repeat
     cursor = result[1]
 until cursor == "0"
 
-local name = redis.call("ZRANGE", usage_key, 0, "(" .. LIMIT, "BYSCORE", "LIMIT", 0, 1)[1]
-redis.call('SET', 'DEBUG', 'ZRANGE ' .. usage_key .. ' => ' .. tostring(name))
-if name ~= nil then
+local names = redis.call("ZRANGE", usage_key, 0, "(" .. LIMIT, "BYSCORE")
+for _, name in ipairs(names) do
+    redis.call('SET', 'DEBUG', 'ZRANGE ' .. usage_key .. ' => ' .. tostring(name))
     local queue_key = PREFIX .. ":queue:" .. name
-    local result = redis.call("ZPOPMAX", queue_key)
-    redis.call('SET', 'DEBUG', 'ZPOPMAX ' .. queue_key .. ' => #' .. tostring(#result))
-    if #result ~= 0 then
+    local highest_item = redis.call("ZPOPMAX", queue_key)
+    redis.call('SET', 'DEBUG', 'ZPOPMAX ' .. queue_key .. ' => #' .. tostring(#highest_item))
+    if #highest_item ~= 0 then
         redis.call("ZINCRBY", usage_key, 1, name)
         redis.call("EXPIRE", usage_key, RESOLUTION)
         redis.call("DECR", total_key)
-        redis.call('SET', 'DEBUG', '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   returning: ' .. tostring(result[1]))
-        return result[1]
+        redis.call('SET', 'DEBUG', '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   returning: ' .. tostring(highest_item[1]))
+        return highest_item[1]
     end
 end
