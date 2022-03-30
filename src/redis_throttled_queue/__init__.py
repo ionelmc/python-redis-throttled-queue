@@ -7,7 +7,7 @@ from typing import Union
 from packaging.version import Version
 from redis.client import StrictRedis
 
-__version__ = '0.0.0'
+__version__ = '0.1.0'
 __file_as_path__ = Path(__file__)
 
 logger = getLogger(__name__)
