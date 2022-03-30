@@ -1,1 +1,66 @@
 __version__ = '0.1.0'
+
+import time
+from enum import IntEnum
+from logging import getLogger
+from pathlib import Path
+
+logger = getLogger(__name__)
+
+
+class Resolution(IntEnum):
+    SECOND = 1
+    MINUTE = 60
+
+
+# Get an item from the queue
+# Arguments:
+# - ARGV: <prefix> <window> <limit> <resolution>
+POP_ITEM_SCRIPT = Path(__file__).with_name('pop_item_script.lua').read_text()
+
+
+class ThrottledQueue(object):
+    """
+    Queue system with key-based throttling implemented over Redis.
+
+    Publishers push given a key.
+
+    Consumers pop one item at a time for the first key that has not exceeded the throttling limit withing the resolution window.
+    """
+
+    _pop_item_script = None
+
+    def __init__(self, redis_client, prefix, limit=10, resolution=Resolution.SECOND):
+        """
+        :param redis_client:
+            An instance of :class:`~StrictRedis`.
+        :param prefix:
+            Redis key prefix.
+        :param limit:
+            Throttling limit. The queue won't retrieve more items in the given resolution for a given `key`.
+        :param resolution:
+            Resolution to use.
+        """
+        self._client = redis_client
+        if not isinstance(prefix, str):
+            raise TypeError(f"Incorrect type for `prefix`. Must be str, not {type(prefix)}.")
+        self._prefix = prefix
+        self._limit = limit
+        self._resolution = resolution
+        self.register_scripts(redis_client)
+
+    def push(self, key, data):
+        if ":" in key:
+            raise ValueError('Incorrect value for `key`. Cannot contain ":".')
+        self._client.rpush(f'{self._prefix}:queue:{key}', data)
+
+    def pop(self):
+        window = int(time.time()) // self._resolution % 60
+        # noinspection Assert
+        assert 0 <= window <= 59, f'Incorrect value for `window`: {window}. Must be within 0-59 (inclusive).'
+        return self._pop_item_script(client=self._client, keys=(), args=(self._prefix, window, self._limit, int(self._resolution)))
+
+    @classmethod
+    def register_scripts(cls, redis_client):
+        if cls._pop_item_script is None:
+            cls._pop_item_script = redis_client.register_script(POP_ITEM_SCRIPT)
