@@ -3,7 +3,7 @@ from functools import partial
 from time import sleep
 
 import pytest
-from redis.client import Redis, StrictRedis
+from redis.client import StrictRedis
 
 from redis_throttled_queue import ThrottledQueue, Resolution
 
@@ -14,10 +14,10 @@ skipifpypy = partial(pytest.mark.skipif(platform.python_implementation() == 'PyP
 
 def test_simple(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, "test", limit=5, resolution=Resolution.SECOND)
-    for i in range(10):
-        queue.push('aaaaaa', f'a{i}')
-    for i in range(10):
-        queue.push('bbbbbb', f'b{i}')
+    for pos, item in enumerate(range(10)):
+        queue.push('aaaaaa', f'a{item}', priority=10 - pos)
+    for pos, item in enumerate(range(10)):
+        queue.push('bbbbbb', f'b{item}', priority=10 - pos)
 
     # print(redis_conn.zincrby(f'test:usage:{int(time()) % 60}', 1, 'aaaaaa'))
     # print(redis_conn.zrangebyscore(f'test:usage:{int(time()) % 60}', 0, "+inf", 0, 1, withscores=True))

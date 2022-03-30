@@ -2,16 +2,16 @@
 This script takes no KEYS arguments.
 
 ARGV arguments:
-    prefix: Key prefix to use for any generated key.
-    window: The current window. Usually the current second or minute. Could in theory be a composite of the current minute and other data.
-    limit: The strict item limit for the window. This script will not return anything if the limit would be reached.
-    resolution: Seconds to use as window key expiry. If you want to have 1 minute windows use value "60".
+    PREFIX: Key prefix to use for any generated key.
+    WINDOW: The current window. Usually the current second or minute. Could in theory be a composite of the current minute and other data.
+    LIMIT: The strict ITEM limit for the WINDOW. This script will not return anything if the limit would be reached.
+    RESOLUTION: Seconds to use as WINDOW key expiry. If you want to have 1 minute windows use value "60".
 
 Typical key structure (for every ITEM returned M is incremented, but only while M < limit):
 
-    prefix:usage:N - zlist of:
+    PREFIX:usage:WINDOW - zlist of:
         (M, NAME)
-    prefix:queue:NAME - list of:
+    PREFIX:queue:NAME - list of:
         ITEM
 ]]
 if #ARGV ~= 4 then
@@ -23,12 +23,12 @@ local usage_zset_key = PREFIX .. ":usage:" .. WINDOW
 local name = redis.call("ZRANGE", usage_zset_key, 0, "(" .. LIMIT, "BYSCORE", "LIMIT", 0, 1)[1]
 if name ~= nil then
     local queue_list = PREFIX .. ":queue:" .. name
-    local value = redis.call("LPOP", queue_list)
+    local value = redis.call("ZPOPMAX", queue_list)
     if value ~= nil then
         redis.call("ZINCRBY", usage_zset_key, 1, name)
         redis.call("EXPIRE", usage_zset_key, RESOLUTION)
+        return value[1]
     end
-    return value
 end
 local cursor = "0"
 local queue_list_key_pattern = PREFIX .. ":queue:*"
@@ -42,11 +42,11 @@ repeat
             local score = redis.call("ZSCORE", usage_zset_key, name)
             redis.call('set', 'debug', tostring(score))
             if tonumber(score or 0) < LIMIT then
-                local value = redis.call("LPOP", queue_list_key)
+                local value = redis.call("ZPOPMAX", queue_list_key)
                 if value ~= nil then
                     redis.call("ZINCRBY", usage_zset_key, 1, name)
                     redis.call("EXPIRE", usage_zset_key, RESOLUTION)
-                    return value
+                    return value[1]
                 end
             end
         end

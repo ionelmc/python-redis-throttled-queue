@@ -4,6 +4,9 @@ import time
 from enum import IntEnum
 from logging import getLogger
 from pathlib import Path
+from typing import Union
+
+from redis.client import StrictRedis
 
 logger = getLogger(__name__)
 
@@ -27,7 +30,7 @@ class ThrottledQueue(object):
 
     Consumers pop one item at a time for the first key that has not exceeded the throttling limit withing the resolution window.
     """
-
+    _client: StrictRedis
     _pop_item_script = None
 
     def __init__(self, redis_client, prefix, limit=10, resolution=Resolution.SECOND):
@@ -49,12 +52,12 @@ class ThrottledQueue(object):
         self._resolution = resolution
         self.register_scripts(redis_client)
 
-    def push(self, key, data):
+    def push(self, key: str, data: bytes, priority: int=0):
         if ":" in key:
             raise ValueError('Incorrect value for `key`. Cannot contain ":".')
-        self._client.rpush(f'{self._prefix}:queue:{key}', data)
+        self._client.zincrby(f'{self._prefix}:queue:{key}', priority, data)
 
-    def pop(self):
+    def pop(self) -> Union[bytes, None]:
         window = int(time.time()) // self._resolution % 60
         # noinspection Assert
         assert 0 <= window <= 59, f'Incorrect value for `window`: {window}. Must be within 0-59 (inclusive).'
