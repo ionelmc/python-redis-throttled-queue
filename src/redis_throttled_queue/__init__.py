@@ -52,12 +52,12 @@ class ThrottledQueue(object):
         self._resolution = resolution
         self.register_scripts(redis_client)
 
-    def push(self, key: str, data: bytes, priority: int=0):
+    def push(self, key: str, data: Union[str, bytes], priority: int=0):
         if ":" in key:
             raise ValueError('Incorrect value for `key`. Cannot contain ":".')
         self._client.zincrby(f'{self._prefix}:queue:{key}', priority, data)
 
-    def pop(self) -> Union[bytes, None]:
+    def pop(self) -> Union[str, bytes, None]:
         window = int(time.time()) // self._resolution % 60
         # noinspection Assert
         assert 0 <= window <= 59, f'Incorrect value for `window`: {window}. Must be within 0-59 (inclusive).'
