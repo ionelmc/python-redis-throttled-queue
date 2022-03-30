@@ -4,4 +4,4 @@ Installation
 
 At the command line::
 
-    pip install python-redis-throttled-queue
+    pip install redis-throttled-queue

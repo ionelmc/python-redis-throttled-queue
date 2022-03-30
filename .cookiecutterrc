@@ -16,7 +16,7 @@ default_context:
     command_line_interface: no
     command_line_interface_bin_name: '-'
     coveralls: yes
-    distribution_name: python-redis-throttled-queue
+    distribution_name: redis-throttled-queue
     email: contact@ionelmc.ro
     full_name: Ionel Cristian Mărieș
     github_actions: yes

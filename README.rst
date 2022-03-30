@@ -35,21 +35,21 @@ Overview
     :alt: Coverage Status
     :target: https://codecov.io/github/ionelmc/python-redis-throttled-queue
 
-.. |version| image:: https://img.shields.io/pypi/v/python-redis-throttled-queue.svg
+.. |version| image:: https://img.shields.io/pypi/v/redis-throttled-queue.svg
     :alt: PyPI Package latest release
-    :target: https://pypi.org/project/python-redis-throttled-queue
+    :target: https://pypi.org/project/redis-throttled-queue
 
-.. |wheel| image:: https://img.shields.io/pypi/wheel/python-redis-throttled-queue.svg
+.. |wheel| image:: https://img.shields.io/pypi/wheel/redis-throttled-queue.svg
     :alt: PyPI Wheel
-    :target: https://pypi.org/project/python-redis-throttled-queue
+    :target: https://pypi.org/project/redis-throttled-queue
 
-.. |supported-versions| image:: https://img.shields.io/pypi/pyversions/python-redis-throttled-queue.svg
+.. |supported-versions| image:: https://img.shields.io/pypi/pyversions/redis-throttled-queue.svg
     :alt: Supported versions
-    :target: https://pypi.org/project/python-redis-throttled-queue
+    :target: https://pypi.org/project/redis-throttled-queue
 
-.. |supported-implementations| image:: https://img.shields.io/pypi/implementation/python-redis-throttled-queue.svg
+.. |supported-implementations| image:: https://img.shields.io/pypi/implementation/redis-throttled-queue.svg
     :alt: Supported implementations
-    :target: https://pypi.org/project/python-redis-throttled-queue
+    :target: https://pypi.org/project/redis-throttled-queue
 
 .. |commits-since| image:: https://img.shields.io/github/commits-since/ionelmc/python-redis-throttled-queue/v0.0.0.svg
     :alt: Commits since latest release
@@ -68,7 +68,7 @@ Installation
 
 ::
 
-    pip install python-redis-throttled-queue
+    pip install redis-throttled-queue
 
 You can also install the in-development version with::
 
