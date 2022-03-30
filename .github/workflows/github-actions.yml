@@ -111,10 +111,10 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.python_arch }}
-    - uses: shogo82148/actions-setup-redis@v1
-      with:
-        redis-version: '6.x'
-        auto-start: "false"
+    - name: install redis-server
+      run: |
+        sudo add-apt-repository ppa:redislabs/redis
+        sudo apt-get install -y redis-server
     - name: install dependencies
       run: |
         python -mpip install --progress-bar=off -r ci/requirements.txt
