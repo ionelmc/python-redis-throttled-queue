@@ -51,7 +51,7 @@ default_context:
     test_runner: pytest
     travis: no
     travis_osx: no
-    version: 0.1.0
+    version: 0.0.0
     version_manager: bump2version
     website: http://blog.ionelmc.ro
     year_from: '2022'
