@@ -1,7 +1,7 @@
 import pytest
 from process_tests import TestProcess
 from process_tests import wait_for_strings
-from redis.client import Redis, StrictRedis
+from redis.client import StrictRedis
 
 
 @pytest.fixture
@@ -17,9 +17,7 @@ def redis_server(tmp_path):
 
 @pytest.fixture
 def redis_monitor(redis_server):
-    with TestProcess(
-        'redis-cli', '-s', redis_server, 'monitor'
-    ) as redis_monitor:
+    with TestProcess('redis-cli', '-s', redis_server, 'monitor') as redis_monitor:
         yield
         print(redis_monitor.read())
 

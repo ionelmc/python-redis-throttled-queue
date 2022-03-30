@@ -16,10 +16,12 @@ class Resolution(IntEnum):
     MINUTE = 60
 
 
+__file_as_path__ = Path(__file__)
 # Get an item from the queue
 # Arguments:
 # - ARGV: <prefix> <window> <limit> <resolution>
-POP_ITEM_SCRIPT = Path(__file__).with_name('pop_item_script.lua').read_text()
+POP_ITEM_SCRIPT = __file_as_path__.with_name('pop_item_script.lua').read_text()
+PUSH_ITEM_SCRIPT = __file_as_path__.with_name('push_item_script.lua').read_text()
 
 
 class ThrottledQueue(object):
@@ -30,8 +32,11 @@ class ThrottledQueue(object):
 
     Consumers pop one item at a time for the first key that has not exceeded the throttling limit withing the resolution window.
     """
+
     _client: StrictRedis
     _pop_item_script = None
+    _push_item_script = None
+    _count_items_script = None
 
     def __init__(self, redis_client, prefix, limit=10, resolution=Resolution.SECOND):
         """
@@ -50,12 +55,13 @@ class ThrottledQueue(object):
         self._prefix = prefix
         self._limit = limit
         self._resolution = resolution
+        self._count_key = f"{self._prefix}:total"
         self.register_scripts(redis_client)
 
-    def push(self, key: str, data: Union[str, bytes], priority: int=0):
-        if ":" in key:
+    def push(self, name: str, data: Union[str, bytes], *, priority: int = 0):
+        if ":" in name:
             raise ValueError('Incorrect value for `key`. Cannot contain ":".')
-        self._client.zincrby(f'{self._prefix}:queue:{key}', priority, data)
+        return self._push_item_script(client=self._client, keys=(), args=(self._prefix, name, priority, data))
 
     def pop(self) -> Union[str, bytes, None]:
         window = int(time.time()) // self._resolution % 60
@@ -63,7 +69,12 @@ class ThrottledQueue(object):
         assert 0 <= window <= 59, f'Incorrect value for `window`: {window}. Must be within 0-59 (inclusive).'
         return self._pop_item_script(client=self._client, keys=(), args=(self._prefix, window, self._limit, int(self._resolution)))
 
+    def __len__(self):
+        return self._client.get(self._count_key)
+
     @classmethod
     def register_scripts(cls, redis_client):
         if cls._pop_item_script is None:
             cls._pop_item_script = redis_client.register_script(POP_ITEM_SCRIPT)
+        if cls._push_item_script is None:
+            cls._push_item_script = redis_client.register_script(PUSH_ITEM_SCRIPT)

@@ -5,7 +5,8 @@ from time import sleep
 import pytest
 from redis.client import StrictRedis
 
-from redis_throttled_queue import ThrottledQueue, Resolution
+from redis_throttled_queue import Resolution
+from redis_throttled_queue import ThrottledQueue
 
 pytest_plugins = ('pytester',)
 
@@ -19,41 +20,20 @@ def test_simple(redis_conn: StrictRedis, redis_monitor):
     for pos, item in enumerate(range(10)):
         queue.push('bbbbbb', f'b{item}', priority=10 - pos)
 
-    for key in redis_conn.scan_iter('test:queue:*', 1):
-        if key == 'test:queue:aaaaaa':
-            first, second = 'ab'
-        elif key == 'test:queue:bbbbbb':
-            first, second = 'ba'
-        else:
-            raise AssertionError(key)
-        break
-
-    assert queue.pop() == f'{first}0'
-    assert queue.pop() == f'{first}1'
-    assert queue.pop() == f'{first}2'
-    assert queue.pop() == f'{first}3'
-    assert queue.pop() == f'{first}4'
-
-    assert queue.pop() == f'{second}0'
-    assert queue.pop() == f'{second}1'
-    assert queue.pop() == f'{second}2'
-    assert queue.pop() == f'{second}3'
-    assert queue.pop() == f'{second}4'
+    items = ','.join(queue.pop() for _ in range(10))
+    assert items in [
+        'a0,b0,a1,b1,a2,b2,a3,b3,a4,b4',
+        'b0,a0,b1,a1,b2,a2,b3,a3,b4,a4',
+    ]
+    assert queue.pop() is None
 
     sleep(1)
 
-    assert queue.pop() == f'{first}5'
-    assert queue.pop() == f'{first}6'
-    assert queue.pop() == f'{first}7'
-    assert queue.pop() == f'{first}8'
-    assert queue.pop() == f'{first}9'
-
-    assert queue.pop() == f'{second}5'
-    assert queue.pop() == f'{second}6'
-    assert queue.pop() == f'{second}7'
-    assert queue.pop() == f'{second}8'
-    assert queue.pop() == f'{second}9'
-
+    items = ','.join(queue.pop() for _ in range(10))
+    assert items in [
+        'a5,b5,a6,b6,a7,b7,a8,b8,a9,b9',
+        'b5,a5,b6,a6,b7,a7,b8,a8,b9,a9',
+    ]
     assert queue.pop() is None
 
 
@@ -64,48 +44,21 @@ def test_extras(redis_conn: StrictRedis, redis_monitor):
     for pos, item in enumerate(range(10)):
         queue.push('bbbbbb', f'b{item}', priority=10 - pos)
 
-    for key in redis_conn.scan_iter('test:queue:*', 1):
-        if key == 'test:queue:aaaaaa':
-            first, second = 'ab'
-        elif key == 'test:queue:bbbbbb':
-            first, second = 'ba'
-        else:
-            raise AssertionError(key)
-        break
+    assert queue.pop() in ['a0', 'b0']
+    queue.push('cccccc', 'c0', priority=11)
+    queue.push('cccccc', 'c1', priority=-1)
+    queue.push('aaaaaa', 'aX', priority=11)
+    queue.push('aaaaaa', 'aY', priority=-1)
+    items = ','.join(str(queue.pop()) for _ in range(15))
 
-    assert queue.pop() == f'{first}0'
-    queue.push(first * 6, 'X', priority=11)
-    queue.push(first * 6, 'Y', priority=-1)
-    assert queue.pop() == f'X'
-    assert queue.pop() == f'{first}1'
-    assert queue.pop() == f'{first}2'
-    assert queue.pop() == f'{first}3'
+    assert items in ['b0,aX,b1,a1,b2,a2,b3,a3,b4,c0,c1,None,None,None,None']
 
-    assert queue.pop() == f'{second}0'
-    assert queue.pop() == f'{second}1'
-    assert queue.pop() == f'{second}2'
-    assert queue.pop() == f'{second}3'
-    assert queue.pop() == f'{second}4'
+    sleep(2)
 
-    sleep(1)
+    items = ','.join(str(queue.pop()) for _ in range(15))
+    assert items in ['a4,b5,a5,None,None,None,None,None,None,None,None,None,None,None,None,None']
 
-    assert queue.pop() == f'{first}4'
-    assert queue.pop() == f'{first}5'
-    assert queue.pop() == f'{first}6'
-    assert queue.pop() == f'{first}7'
-    assert queue.pop() == f'{first}8'
+    sleep(2)
 
-    assert queue.pop() == f'{second}5'
-    assert queue.pop() == f'{second}6'
-    assert queue.pop() == f'{second}7'
-    assert queue.pop() == f'{second}8'
-    assert queue.pop() == f'{second}9'
-
-    assert queue.pop() is None
-
-    sleep(1)
-
-    assert queue.pop() == f'{first}9'
-    assert queue.pop() == f'Y'
-    assert queue.pop() is None
-
+    items = ','.join(str(queue.pop()) for _ in range(15))
+    assert items in ['a5,b6,None,None,None,None,None,None,None,None,None,None,None,None,None']
