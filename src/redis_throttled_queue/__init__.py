@@ -1,5 +1,3 @@
-__version__ = '0.1.0'
-
 import time
 from enum import IntEnum
 from logging import getLogger
@@ -9,6 +7,9 @@ from typing import Union
 from packaging.version import Version
 from redis.client import StrictRedis
 
+__version__ = '0.0.0'
+__file_as_path__ = Path(__file__)
+
 logger = getLogger(__name__)
 
 
@@ -17,7 +18,6 @@ class Resolution(IntEnum):
     MINUTE = 60
 
 
-__file_as_path__ = Path(__file__)
 # Get an item from the queue
 # Arguments:
 # - ARGV: <prefix> <window> <limit> <resolution>
