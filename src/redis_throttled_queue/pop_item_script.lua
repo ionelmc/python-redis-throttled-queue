@@ -10,7 +10,9 @@ ARGV arguments:
 Typical key structure (for every ITEM returned M is incremented, but only while M < limit):
 
     PREFIX:usage:WINDOW - zlist of (M, NAME)
-    PREFIX:queue:NAME - list of ITEM
+    PREFIX:queue:NAME - zset of ITEM
+    PREFIX:total - int of total ITEM count
+    PREFIX:names - set of NAME
 ]]
 if #ARGV ~= 4 then
     error("POP_ITEM_SCRIPT expected 4 arguments, but got " .. #ARGV .. " arguments!")

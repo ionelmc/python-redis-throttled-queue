@@ -2,6 +2,12 @@
 Changelog
 =========
 
+0.4.0 (2022-03-31)
+------------------
+
+* Add ``last_activity`` and ``idle_seconds`` attributes.
+* Add a ``cleanup()`` method.
+
 0.3.1 (2022-03-31)
 ------------------
 

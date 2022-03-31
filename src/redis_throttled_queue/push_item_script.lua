@@ -10,8 +10,8 @@ ARGV arguments:
 Typical key structure (for every ITEM returned M is incremented, but only while M < limit):
 
     PREFIX:queue:NAME - zset of ITEM
-    PREFIX:queue-total - int of total ITEM count
-    PREFIX:queue-set - set of NAME
+    PREFIX:total - int of total ITEM count
+    PREFIX:names - set of NAME
 ]]
 if #ARGV ~= 4 then
     error("PUSH_ITEM_SCRIPT expected 4 arguments, but got " .. #ARGV .. " arguments!")
