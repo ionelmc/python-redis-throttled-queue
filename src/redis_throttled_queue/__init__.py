@@ -75,7 +75,7 @@ class ThrottledQueue(object):
         return self._pop_item_script(client=self._client, keys=(), args=(self._prefix, window, self._limit, int(self._resolution)))
 
     def __len__(self):
-        return self._client.get(self._count_key)
+        return int(self._client.get(self._count_key))
 
     @classmethod
     def register_scripts(cls, redis_client):

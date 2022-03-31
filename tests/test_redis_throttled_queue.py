@@ -20,12 +20,15 @@ def test_simple(redis_conn: StrictRedis, redis_monitor):
     for pos, item in enumerate(range(10)):
         queue.push('bbbbbb', f'b{item}', priority=10 - pos)
 
+    assert len(queue) == 20
     items = ','.join(queue.pop() for _ in range(10))
     assert items in [
         'a0,b0,a1,b1,a2,b2,a3,b3,a4,b4',
         'b0,a0,b1,a1,b2,a2,b3,a3,b4,a4',
     ]
+    assert len(queue) == 10
     assert queue.pop() is None
+    assert len(queue) == 10
 
     sleep(1)
 
@@ -35,6 +38,7 @@ def test_simple(redis_conn: StrictRedis, redis_monitor):
         'b5,a5,b6,a6,b7,a7,b8,a8,b9,a9',
     ]
     assert queue.pop() is None
+    assert len(queue) == 0
 
 
 def test_extras(redis_conn: StrictRedis, redis_monitor):
@@ -44,21 +48,27 @@ def test_extras(redis_conn: StrictRedis, redis_monitor):
     for pos, item in enumerate(range(10)):
         queue.push('bbbbbb', f'b{item}', priority=10 - pos)
 
+    assert len(queue) == 20
     assert queue.pop() in ['a0', 'b0']
+    assert len(queue) == 19
     queue.push('cccccc', 'c0', priority=11)
     queue.push('cccccc', 'c1', priority=-1)
     queue.push('aaaaaa', 'aX', priority=11)
     queue.push('aaaaaa', 'aY', priority=-1)
-    items = ','.join(str(queue.pop()) for _ in range(13))
+    assert len(queue) == 23
 
+    items = ','.join(str(queue.pop()) for _ in range(13))
+    assert len(queue) == 12
     assert items in ['b0,aX,b1,a1,b2,a2,b3,a3,b4,c0,c1,None,None']
 
     sleep(1)
 
     items = ','.join(str(queue.pop()) for _ in range(12))
+    assert len(queue) == 2
     assert items in ['a4,b5,a5,b6,a6,b7,a7,b8,a8,b9,None,None']
 
     sleep(1)
 
     items = ','.join(str(queue.pop()) for _ in range(4))
+    assert len(queue) == 0
     assert items in ['a9,aY,None,None']
