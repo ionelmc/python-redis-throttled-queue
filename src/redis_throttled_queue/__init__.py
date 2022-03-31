@@ -54,8 +54,8 @@ class ThrottledQueue(object):
         if not isinstance(prefix, str):
             raise TypeError(f"Incorrect type for `prefix`. Must be str, not {type(prefix)}.")
         self._prefix = prefix
-        self._limit = limit
-        self._resolution = resolution
+        self.limit = limit
+        self.resolution = resolution
         self._count_key = f"{self._prefix}:total"
         self.register_scripts(redis_client)
         info = redis_client.info()
@@ -70,8 +70,8 @@ class ThrottledQueue(object):
 
     def pop(self, window: Union[str, bytes, int] = Ellipsis) -> Union[str, bytes, None]:
         if window is Ellipsis:
-            window = int(time.time()) // self._resolution % 60
-        return self._pop_item_script(client=self._client, keys=(), args=(self._prefix, window, self._limit, int(self._resolution)))
+            window = int(time.time()) // self.resolution % 60
+        return self._pop_item_script(client=self._client, keys=(), args=(self._prefix, window, self.limit, int(self.resolution)))
 
     def __len__(self):
         return int(self._client.get(self._count_key))

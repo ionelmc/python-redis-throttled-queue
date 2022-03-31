@@ -2,6 +2,14 @@
 Changelog
 =========
 
+0.3.1 (2022-03-31)
+------------------
+
+* Rename attributes (should be safe to mess with):
+
+  - ``_limit`` becomes ``limit``.
+  - ``_resolution`` becomes ``resolution``.
+
 0.3.0 (2022-03-31)
 ------------------
 
