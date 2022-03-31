@@ -11,7 +11,7 @@ Overview
       - |docs|
     * - tests
       - | |github-actions| |requires|
-        | |coveralls| |codecov|
+        | |codecov|
     * - package
       - | |version| |wheel| |supported-versions| |supported-implementations|
         | |commits-since|
@@ -26,10 +26,6 @@ Overview
 .. |requires| image:: https://requires.io/github/ionelmc/python-redis-throttled-queue/requirements.svg?branch=main
     :alt: Requirements Status
     :target: https://requires.io/github/ionelmc/python-redis-throttled-queue/requirements/?branch=main
-
-.. |coveralls| image:: https://coveralls.io/repos/ionelmc/python-redis-throttled-queue/badge.svg?branch=main&service=github
-    :alt: Coverage Status
-    :target: https://coveralls.io/r/ionelmc/python-redis-throttled-queue
 
 .. |codecov| image:: https://codecov.io/gh/ionelmc/python-redis-throttled-queue/branch/main/graphs/badge.svg?branch=main
     :alt: Coverage Status
