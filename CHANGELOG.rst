@@ -2,6 +2,12 @@
 Changelog
 =========
 
+
+0.4.1 (2022-03-31)
+------------------
+
+* Fix bogus error in ``cleanup()`` when db is completely empty.
+
 0.4.0 (2022-03-31)
 ------------------
 

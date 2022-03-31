@@ -69,6 +69,15 @@ def test_cleanup_directly(redis_conn: StrictRedis, redis_monitor):
     assert queue.pop() is None
 
 
+def test_cleanup_nothing(redis_conn: StrictRedis, redis_monitor):
+    queue = ThrottledQueue(redis_conn, "test", limit=5, resolution=Resolution.SECOND)
+    assert len(queue) == 0
+    queue.cleanup()
+    assert len(queue) == 0
+    queue.cleanup()
+    assert queue.pop() is None
+
+
 def test_priority(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, "test", limit=5, resolution=Resolution.SECOND)
     for pos, item in enumerate(range(10)):
