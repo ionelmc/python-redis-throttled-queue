@@ -68,10 +68,9 @@ class ThrottledQueue(object):
             raise ValueError('Incorrect value for `key`. Cannot contain ":".')
         return self._push_item_script(client=self._client, keys=(), args=(self._prefix, name, priority, data))
 
-    def pop(self) -> Union[str, bytes, None]:
-        window = int(time.time()) // self._resolution % 60
-        # noinspection Assert
-        assert 0 <= window <= 59, f'Incorrect value for `window`: {window}. Must be within 0-59 (inclusive).'
+    def pop(self, window: Union[str, bytes, int] = Ellipsis) -> Union[str, bytes, None]:
+        if window is Ellipsis:
+            window = int(time.time()) // self._resolution % 60
         return self._pop_item_script(client=self._client, keys=(), args=(self._prefix, window, self._limit, int(self._resolution)))
 
     def __len__(self):
