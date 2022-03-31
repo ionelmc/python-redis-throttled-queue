@@ -20,7 +20,7 @@ def read(*names, **kwargs):
 
 setup(
     name='redis-throttled-queue',
-    version='0.3.0',
+    version='0.3.1',
     license='BSD-2-Clause',
     description='Queue system with key-based throttling implemented over Redis.',
     long_description='{}\n{}'.format(
