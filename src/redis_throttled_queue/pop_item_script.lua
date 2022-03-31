@@ -28,11 +28,12 @@ for _, name in ipairs(names) do
     local highest_item = redis.call("ZPOPMAX", queue_key)
     --redis.call('SET', 'DEBUG', 'ZPOPMAX ' .. queue_key .. ' => #' .. tostring(#highest_item))
     if #highest_item ~= 0 then
+        local value = highest_item[1]
         redis.call("ZINCRBY", usage_key, 1, name)
         redis.call("EXPIRE", usage_key, RESOLUTION)
         redis.call("DECR", total_key)
         --redis.call('SET', 'DEBUG', '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   returning: ' .. tostring(highest_item[1]))
-        return highest_item[1]
+        return value
     end
 end
 
@@ -61,10 +62,11 @@ for _, name in ipairs(names) do
     local highest_item = redis.call("ZPOPMAX", queue_key)
     --redis.call('SET', 'DEBUG', 'ZPOPMAX ' .. queue_key .. ' => #' .. tostring(#highest_item))
     if #highest_item ~= 0 then
+        local value = highest_item[1]
         redis.call("ZINCRBY", usage_key, 1, name)
         redis.call("EXPIRE", usage_key, RESOLUTION)
         redis.call("DECR", total_key)
         --redis.call('SET', 'DEBUG', '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   returning: ' .. tostring(highest_item[1]))
-        return highest_item[1]
+        return value
     end
 end
