@@ -54,23 +54,23 @@ class ThrottledQueue(object):
         """
         self._client = redis_client
         if not isinstance(prefix, str):
-            raise TypeError(f"Incorrect type for `prefix`. Must be str, not {type(prefix)}.")
+            raise TypeError(f'Incorrect type for `prefix`. Must be str, not {type(prefix)}.')
         self._prefix = prefix
         self.limit = limit
         self.resolution = resolution
         self.last_activity = time()
-        self._count_key = f"{self._prefix}:total"
+        self._count_key = f'{self._prefix}:total'
         self.register_scripts(redis_client)
         info = redis_client.info()
-        version = info["redis_version"]
+        version = info['redis_version']
         if Version(version) < Version('6.2.0'):
-            raise RuntimeError(f"Redis 6.2 is the minimum version supported. The server reported version {version!r}.")
+            raise RuntimeError(f'Redis 6.2 is the minimum version supported. The server reported version {version!r}.')
 
     def __len__(self):
         return int(self._client.get(self._count_key) or 0)
 
     def push(self, name: str, data: Union[str, bytes], *, priority: int = 0):
-        if ":" in name:
+        if ':' in name:
             raise ValueError('Incorrect value for `key`. Cannot contain ":".')
         self.last_activity = time()
         return self._push_item_script(client=self._client, keys=(), args=(self._prefix, name, priority, data))

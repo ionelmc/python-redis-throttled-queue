@@ -4,7 +4,6 @@ requires = [
     "wheel",
 ]
 
-[tool.black]
+[tool.blue]
 line-length = 140
 target-version = ['py36']
-skip-string-normalization = true

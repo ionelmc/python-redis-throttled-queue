@@ -27,7 +27,7 @@ default_context:
     linter: flake8
     package_name: redis_throttled_queue
     pre_commit: yes
-    pre_commit_formatter: black
+    pre_commit_formatter: blue
     project_name: redis-throttled-queue
     project_short_description: Queue system with key-based throttling implemented over Redis.
     pypi_badge: yes

@@ -17,7 +17,7 @@ skipifpypy = partial(pytest.mark.skipif(platform.python_implementation() == 'PyP
 
 
 def test_simple(redis_conn: StrictRedis, redis_monitor):
-    queue = ThrottledQueue(redis_conn, "test", limit=5, resolution=Resolution.SECOND)
+    queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
     for pos, item in enumerate(range(10)):
         queue.push('aaaaaa', f'a{item}', priority=10 - pos)
     for pos, item in enumerate(range(10)):
@@ -39,7 +39,7 @@ def test_simple(redis_conn: StrictRedis, redis_monitor):
 
 
 def test_cleanup(redis_conn: StrictRedis, redis_monitor):
-    queue = ThrottledQueue(redis_conn, "test", limit=5, resolution=Resolution.SECOND)
+    queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
     for pos, item in enumerate(range(10)):
         queue.push('aaaaaa', f'a{item}', priority=10 - pos)
     for pos, item in enumerate(range(10)):
@@ -60,7 +60,7 @@ def test_cleanup(redis_conn: StrictRedis, redis_monitor):
 
 
 def test_cleanup_directly(redis_conn: StrictRedis, redis_monitor):
-    queue = ThrottledQueue(redis_conn, "test", limit=5, resolution=Resolution.SECOND)
+    queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
     for pos, item in enumerate(range(10)):
         queue.push('aaaaaa', f'a{item}', priority=10 - pos)
     for pos, item in enumerate(range(10)):
@@ -73,7 +73,7 @@ def test_cleanup_directly(redis_conn: StrictRedis, redis_monitor):
 
 
 def test_cleanup_nothing(redis_conn: StrictRedis, redis_monitor):
-    queue = ThrottledQueue(redis_conn, "test", limit=5, resolution=Resolution.SECOND)
+    queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
     assert len(queue) == 0
     queue.cleanup()
     assert len(queue) == 0
@@ -82,7 +82,7 @@ def test_cleanup_nothing(redis_conn: StrictRedis, redis_monitor):
 
 
 def test_priority(redis_conn: StrictRedis, redis_monitor):
-    queue = ThrottledQueue(redis_conn, "test", limit=5, resolution=Resolution.SECOND)
+    queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
     for pos, item in enumerate(range(10)):
         queue.push('aaaaaa', f'a{item}', priority=10 - pos)
     for pos, item in enumerate(range(10)):
@@ -207,3 +207,12 @@ def test_mocked_window(mocker):
         call(client=conn, keys=(), args=('foobar', 'foobar1', '?', 10)),
         call(client=conn, keys=(), args=('foobar', 'foobar2', '?', 10)),
     ]
+
+
+def test_validation():
+    old_conn = SimpleNamespace(info=lambda: {'redis_version': '6.1'})
+    pytest.raises(RuntimeError, ThrottledQueue, old_conn, 'foo')
+    conn = SimpleNamespace(info=lambda: {'redis_version': '10'}, register_script=lambda _: None)
+    pytest.raises(TypeError, ThrottledQueue, conn, b'caca')
+    pytest.raises(TypeError, ThrottledQueue, conn, 123)
+    pytest.raises(ValueError, ThrottledQueue(conn, 'foo').push, ':', None)
