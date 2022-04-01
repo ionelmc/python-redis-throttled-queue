@@ -3,7 +3,7 @@ Changelog
 =========
 
 
-0.4.2 (2022-04-01)
+0.4.2 (2022-04-02)
 ------------------
 
 * Refactor some duplicated code in the `pop` script.
