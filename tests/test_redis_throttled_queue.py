@@ -38,6 +38,29 @@ def test_simple(redis_conn: StrictRedis, redis_monitor):
     assert len(queue) == 0
 
 
+def test_dupes(redis_conn: StrictRedis, redis_monitor):
+    queue = ThrottledQueue(redis_conn, "test", limit=5, resolution=Resolution.SECOND)
+    for _ in range(3):
+        for pos, item in enumerate(range(10)):
+            queue.push('aaaaaa', f'a{item}', priority=10 - pos)
+        for pos, item in enumerate(range(10)):
+            queue.push('bbbbbb', f'b{item}', priority=10 - pos)
+
+    assert len(queue) == 20
+    items = ','.join(queue.pop() for _ in range(10))
+    assert items == 'a0,b0,a1,b1,a2,b2,a3,b3,a4,b4'
+    assert len(queue) == 10
+    assert queue.pop() is None
+    assert len(queue) == 10
+
+    sleep(1)
+
+    items = ','.join(queue.pop() for _ in range(10))
+    assert items == 'a5,b5,a6,b6,a7,b7,a8,b8,a9,b9'
+    assert queue.pop() is None
+    assert len(queue) == 0
+
+
 def test_cleanup(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
     for pos, item in enumerate(range(10)):

@@ -20,6 +20,8 @@ local PREFIX, NAME, PRIORITY, DATA = unpack(ARGV)
 local queue_key = PREFIX .. ":queue:" .. NAME
 local total_key = PREFIX .. ":total"
 local name_set_key = PREFIX .. ":names"
-redis.call('ZINCRBY', queue_key, PRIORITY, DATA)
-redis.call('INCR', total_key)
-redis.call('SADD', name_set_key, NAME)
+local added = redis.call('ZADD', queue_key, "GT", PRIORITY, DATA)
+if tonumber(added) > 0 then
+    redis.call('INCR', total_key)
+    redis.call('SADD', name_set_key, NAME)
+end

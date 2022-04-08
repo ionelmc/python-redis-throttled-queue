@@ -2,6 +2,13 @@
 Changelog
 =========
 
+0.4.2 (2022-04-09)
+------------------
+
+* Fix buggy counts when duplicate values are pushed.
+  For now the highest priority will be used when two identical
+  values would be pushed.
+
 
 0.4.2 (2022-04-02)
 ------------------
