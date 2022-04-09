@@ -2,7 +2,7 @@
 Changelog
 =========
 
-0.4.2 (2022-04-09)
+0.4.3 (2022-04-09)
 ------------------
 
 * Fix buggy counts when duplicate values are pushed.
