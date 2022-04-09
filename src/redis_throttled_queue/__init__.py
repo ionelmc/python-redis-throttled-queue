@@ -8,7 +8,7 @@ from packaging.version import Version
 from redis.client import StrictRedis
 from redis.commands.core import Script
 
-__version__ = '0.4.2'
+__version__ = '0.4.3'
 __file_as_path__ = Path(__file__)
 
 logger = getLogger(__name__)

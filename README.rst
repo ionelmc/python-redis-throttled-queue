@@ -47,9 +47,9 @@ Overview
     :alt: Supported implementations
     :target: https://pypi.org/project/redis-throttled-queue
 
-.. |commits-since| image:: https://img.shields.io/github/commits-since/ionelmc/python-redis-throttled-queue/v0.4.2.svg
+.. |commits-since| image:: https://img.shields.io/github/commits-since/ionelmc/python-redis-throttled-queue/v0.4.3.svg
     :alt: Commits since latest release
-    :target: https://github.com/ionelmc/python-redis-throttled-queue/compare/v0.4.2...main
+    :target: https://github.com/ionelmc/python-redis-throttled-queue/compare/v0.4.3...main
 
 
 
