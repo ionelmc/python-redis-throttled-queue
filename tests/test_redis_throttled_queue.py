@@ -22,10 +22,10 @@ def get_ttl(redis_conn):
 
 def test_simple(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
-    for pos, item in enumerate(range(10)):
-        queue.push('aaaaaa', f'a{item}', priority=10 - pos)
-    for pos, item in enumerate(range(10)):
-        queue.push('bbbbbb', f'b{item}', priority=10 - pos)
+    for item in range(10):
+        queue.push('aaaaaa', f'a{item}', priority=10 - item)
+    for item in range(10):
+        queue.push('bbbbbb', f'b{item}', priority=10 - item)
 
     assert len(queue) == 20
     items = ','.join(queue.pop() for _ in range(10))
@@ -91,10 +91,10 @@ def test_dupes(redis_conn: StrictRedis, redis_monitor):
 
 def test_cleanup(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
-    for pos, item in enumerate(range(10)):
-        queue.push('aaaaaa', f'a{item}', priority=10 - pos)
-    for pos, item in enumerate(range(10)):
-        queue.push('bbbbbb', f'b{item}', priority=10 - pos)
+    for item in range(10):
+        queue.push('aaaaaa', f'a{item}', priority=10 - item)
+    for item in range(10):
+        queue.push('bbbbbb', f'b{item}', priority=10 - item)
 
     assert len(queue) == 20
     items = ','.join(queue.pop() for _ in range(10))
@@ -114,10 +114,10 @@ def test_cleanup(redis_conn: StrictRedis, redis_monitor):
 
 def test_cleanup_directly(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
-    for pos, item in enumerate(range(10)):
-        queue.push('aaaaaa', f'a{item}', priority=10 - pos)
-    for pos, item in enumerate(range(10)):
-        queue.push('bbbbbb', f'b{item}', priority=10 - pos)
+    for item in range(10):
+        queue.push('aaaaaa', f'a{item}', priority=10 - item)
+    for item in range(10):
+        queue.push('bbbbbb', f'b{item}', priority=10 - item)
 
     assert len(queue) == 20
     queue.cleanup()
@@ -136,10 +136,10 @@ def test_cleanup_nothing(redis_conn: StrictRedis, redis_monitor):
 
 def test_priority(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
-    for pos, item in enumerate(range(10)):
-        queue.push('aaaaaa', f'a{item}', priority=10 - pos)
-    for pos, item in enumerate(range(10)):
-        queue.push('bbbbbb', f'b{item}', priority=pos)
+    for item in range(10):
+        queue.push('aaaaaa', f'a{item}', priority=10 - item)
+    for item in range(10):
+        queue.push('bbbbbb', f'b{item}', priority=item)
 
     assert len(queue) == 20
     items = ','.join(queue.pop() for _ in range(10))
@@ -161,8 +161,8 @@ def test_priority(redis_conn: StrictRedis, redis_monitor):
 
 def test_window(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=1, resolution=Resolution.SECOND)
-    for pos, item in enumerate(range(10)):
-        queue.push('A', f'a{item}', priority=pos)
+    for item in range(10):
+        queue.push('A', f'a{item}', priority=item)
 
     assert len(queue) == 10
     assert queue.pop('X') == 'a9'
@@ -187,10 +187,10 @@ def test_window(redis_conn: StrictRedis, redis_monitor):
 
 def test_extras(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
-    for pos, item in enumerate(range(10)):
-        queue.push('aaaaaa', f'a{item}', priority=10 - pos)
-    for pos, item in enumerate(range(10)):
-        queue.push('bbbbbb', f'b{item}', priority=10 - pos)
+    for item in range(10):
+        queue.push('aaaaaa', f'a{item}', priority=10 - item)
+    for item in range(10):
+        queue.push('bbbbbb', f'b{item}', priority=10 - item)
 
     assert len(queue) == 20
     assert queue.pop() == 'a0'
