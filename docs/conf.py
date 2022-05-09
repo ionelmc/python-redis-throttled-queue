@@ -20,7 +20,7 @@ project = 'redis-throttled-queue'
 year = '2022'
 author = 'Ionel Cristian Mărieș'
 copyright = '{0}, {1}'.format(year, author)
-version = release = '0.4.3'
+version = release = '0.4.4'
 
 pygments_style = 'trac'
 templates_path = ['.']
