@@ -52,6 +52,7 @@ if value == nil then
                 local queue_key = PREFIX .. ":queue:" .. name
                 if redis.call('EXISTS', queue_key) then
                     redis.call("ZINCRBY", usage_key, 0, name)
+                    redis.call("EXPIRE", usage_key, RESOLUTION)
                 else
                     redis.call("SREM", names_key, name)
                 end

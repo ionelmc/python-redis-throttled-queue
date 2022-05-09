@@ -16,6 +16,10 @@ pytest_plugins = ('pytester',)
 skipifpypy = partial(pytest.mark.skipif(platform.python_implementation() == 'PyPy'))
 
 
+def get_ttl(redis_conn):
+    return {':'.join(key.split(':')[:2]): redis_conn.ttl(key) for key in redis_conn.keys('*:usage:*')}
+
+
 def test_simple(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
     for pos, item in enumerate(range(10)):
@@ -27,6 +31,7 @@ def test_simple(redis_conn: StrictRedis, redis_monitor):
     items = ','.join(queue.pop() for _ in range(10))
     assert items == 'a0,b0,a1,b1,a2,b2,a3,b3,a4,b4'
     assert len(queue) == 10
+    assert get_ttl(redis_conn) == {'test:usage': 1}
     assert queue.pop() is None
     assert len(queue) == 10
 
@@ -38,18 +43,41 @@ def test_simple(redis_conn: StrictRedis, redis_monitor):
     assert len(queue) == 0
 
 
+def test_usage_expiry(redis_conn: StrictRedis, redis_monitor):
+    queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
+    queue.push('name', 'foo')
+
+    assert len(queue) == 1
+    assert queue.pop() == 'foo'
+    assert len(queue) == 0
+    assert get_ttl(redis_conn) == {'test:usage': 1}
+    assert queue.pop() is None
+    assert get_ttl(redis_conn) == {'test:usage': 1}
+
+    sleep(1)
+
+    assert get_ttl(redis_conn) == {}
+    assert queue.pop() is None
+    assert get_ttl(redis_conn) == {'test:usage': 1}
+
+    sleep(1)
+
+    assert get_ttl(redis_conn) == {}
+
+
 def test_dupes(redis_conn: StrictRedis, redis_monitor):
-    queue = ThrottledQueue(redis_conn, "test", limit=5, resolution=Resolution.SECOND)
+    queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
     for _ in range(3):
-        for pos, item in enumerate(range(10)):
-            queue.push('aaaaaa', f'a{item}', priority=10 - pos)
-        for pos, item in enumerate(range(10)):
-            queue.push('bbbbbb', f'b{item}', priority=10 - pos)
+        for item in range(10):
+            queue.push('aaaaaa', f'a{item}', priority=10 - item)
+        for item in range(10):
+            queue.push('bbbbbb', f'b{item}', priority=10 - item)
 
     assert len(queue) == 20
     items = ','.join(queue.pop() for _ in range(10))
     assert items == 'a0,b0,a1,b1,a2,b2,a3,b3,a4,b4'
     assert len(queue) == 10
+    assert get_ttl(redis_conn) == {'test:usage': 1}
     assert queue.pop() is None
     assert len(queue) == 10
 
@@ -74,12 +102,14 @@ def test_cleanup(redis_conn: StrictRedis, redis_monitor):
     assert len(queue) == 10
     assert queue.pop() is None
     assert len(queue) == 10
+    assert get_ttl(redis_conn) == {'test:usage': 1}
 
     sleep(1)
 
     queue.cleanup()
     assert len(queue) == 0
     assert queue.pop() is None
+    assert get_ttl(redis_conn) == {}
 
 
 def test_cleanup_directly(redis_conn: StrictRedis, redis_monitor):
@@ -117,6 +147,7 @@ def test_priority(redis_conn: StrictRedis, redis_monitor):
     assert len(queue) == 10
     assert queue.pop() is None
     assert len(queue) == 10
+    assert get_ttl(redis_conn) == {'test:usage': 1}
 
     sleep(1)
     assert queue.idle_seconds == pytest.approx(1, 0.01)
@@ -125,6 +156,7 @@ def test_priority(redis_conn: StrictRedis, redis_monitor):
     assert items == 'a5,b4,a6,b3,a7,b2,a8,b1,a9,b0'
     assert queue.pop() is None
     assert len(queue) == 0
+    assert get_ttl(redis_conn) == {'test:usage': 1}
 
 
 def test_window(redis_conn: StrictRedis, redis_monitor):
@@ -134,6 +166,7 @@ def test_window(redis_conn: StrictRedis, redis_monitor):
 
     assert len(queue) == 10
     assert queue.pop('X') == 'a9'
+    assert get_ttl(redis_conn) == {'test:usage': 1}
     assert len(queue) == 9
     assert queue.pop('X') is None
     assert len(queue) == 9
@@ -161,6 +194,7 @@ def test_extras(redis_conn: StrictRedis, redis_monitor):
 
     assert len(queue) == 20
     assert queue.pop() == 'a0'
+    assert get_ttl(redis_conn) == {'test:usage': 1}
     assert len(queue) == 19
     queue.push('cccccc', 'c0', priority=11)
     queue.push('cccccc', 'c1', priority=-1)

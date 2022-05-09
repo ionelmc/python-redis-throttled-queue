@@ -2,6 +2,11 @@
 Changelog
 =========
 
+0.4.4 (2022-05-09)
+------------------
+
+* Fix missing usage key expiration when some queues are empty.
+
 0.4.3 (2022-04-09)
 ------------------
 
