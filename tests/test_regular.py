@@ -1,5 +1,3 @@
-import platform
-from functools import partial
 from time import sleep
 from types import SimpleNamespace
 from unittest.mock import call
@@ -12,8 +10,6 @@ from redis_throttled_queue import Resolution
 from redis_throttled_queue import ThrottledQueue
 
 pytest_plugins = ('pytester',)
-
-skipifpypy = partial(pytest.mark.skipif(platform.python_implementation() == 'PyPy'))
 
 
 def get_ttl(redis_conn):
@@ -267,7 +263,7 @@ def test_mocked_window(mocker):
 
 
 def test_validation():
-    old_conn = SimpleNamespace(info=lambda: {'redis_version': '6.1'})
+    old_conn = SimpleNamespace(info=lambda: {'redis_version': '6.1'}, register_script=lambda _: None)
     pytest.raises(RuntimeError, ThrottledQueue, old_conn, 'foo')
     conn = SimpleNamespace(info=lambda: {'redis_version': '10'}, register_script=lambda _: None)
     pytest.raises(TypeError, ThrottledQueue, conn, b'caca')

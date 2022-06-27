@@ -5,6 +5,7 @@ from time import time
 from typing import Union
 
 from packaging.version import Version
+from redis.asyncio import StrictRedis as AsyncStrictRedis
 from redis.client import StrictRedis
 from redis.commands.core import Script
 
@@ -41,7 +42,7 @@ class ThrottledQueue(object):
     _push_item_script: Script = None
     _cleanup_script: Script = None
 
-    def __init__(self, redis_client: StrictRedis, prefix: str, limit: int = 10, resolution=Resolution.SECOND):
+    def __init__(self, redis_client: StrictRedis, prefix: str, limit: int = 10, resolution=Resolution.SECOND, validate_version=True):
         """
         :param redis_client:
             An instance of :class:`~StrictRedis`.
@@ -61,7 +62,11 @@ class ThrottledQueue(object):
         self.last_activity = time()
         self._count_key = f'{self._prefix}:total'
         self.register_scripts(redis_client)
-        info = redis_client.info()
+        if validate_version:
+            self.ensure_supported_redis(redis_client.info())
+
+    @classmethod
+    def ensure_supported_redis(cls, info: dict):
         version = info['redis_version']
         if Version(version) < Version('6.2.0'):
             raise RuntimeError(f'Redis 6.2 is the minimum version supported. The server reported version {version!r}.')
@@ -98,3 +103,37 @@ class ThrottledQueue(object):
             cls._push_item_script = redis_client.register_script(PUSH_ITEM_SCRIPT)
         if cls._cleanup_script is None:
             cls._cleanup_script = redis_client.register_script(CLEANUP_SCRIPT)
+
+
+class AsyncThrottledQueue(ThrottledQueue):
+    _client: AsyncStrictRedis
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs, validate_version=False)
+
+    async def validate_version(self):
+        self.ensure_supported_redis(await self._client.info())
+
+    async def size(self):
+        return int(await self._client.get(self._count_key) or 0)
+
+    async def push(self, name: str, data: Union[str, bytes], *, priority: int = 0):
+        if ':' in name:
+            raise ValueError('Incorrect value for `key`. Cannot contain ":".')
+        self.last_activity = time()
+        return await self._push_item_script(client=self._client, keys=(), args=(self._prefix, name, priority, data))
+
+    async def pop(self, window: Union[str, bytes, int] = Ellipsis) -> Union[str, bytes, None]:
+        if window is Ellipsis:
+            window = int(time()) // self.resolution % 60
+        value = await self._pop_item_script(client=self._client, keys=(), args=(self._prefix, window, self.limit, int(self.resolution)))
+        if value is not None:
+            self.last_activity = time()
+        return value
+
+    @property
+    def idle_seconds(self) -> float:
+        return time() - self.last_activity
+
+    async def cleanup(self):
+        return await self._cleanup_script(client=self._client, keys=(), args=(self._prefix,))
