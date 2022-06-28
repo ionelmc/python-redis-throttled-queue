@@ -2,6 +2,16 @@
 Changelog
 =========
 
+0.5.0 (2022-06-28)
+------------------
+
+* Added support in a ``AsyncThrottledQueue`` class that only differs a bit from the regular ``ThrottledQueue``:
+
+  * ``__len__`` is removed, instead a awaitable ``size()`` method is available.
+  * ``__init__`` doesn't validate version anymore, instead you can await on ``validate_version()``.
+  * ``push()``, ``pull()`` and ``cleanup()`` are awaitable.
+* Added a ``validate_version`` argument to ``ThrottledQueue`` (default: ``True``).
+
 0.4.4 (2022-05-09)
 ------------------
 
