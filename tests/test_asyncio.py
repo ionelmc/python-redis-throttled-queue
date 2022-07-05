@@ -1,3 +1,4 @@
+import asyncio
 from time import sleep
 from types import SimpleNamespace
 
@@ -35,7 +36,7 @@ async def test_simple(redis_conn: StrictRedis, redis_monitor):
     assert await queue.pop() is None
     assert await queue.size() == 10
 
-    sleep(1)
+    await asyncio.sleep(1)
 
     items = ','.join([(await queue.pop()) for _ in range(10)])
     assert items == 'a5,b5,a6,b6,a7,b7,a8,b8,a9,b9'
@@ -45,23 +46,26 @@ async def test_simple(redis_conn: StrictRedis, redis_monitor):
 
 @pytest.mark.asyncio
 async def test_usage_expiry(redis_conn: StrictRedis, redis_monitor):
-    queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
-    await queue.push('name', 'foo')
+    queue = ThrottledQueue(redis_conn, 'test', limit=2, resolution=Resolution.SECOND)
+    for i in range(10):
+        await queue.push('name', f'foo{i}')
 
-    assert await queue.size() == 1
-    assert await queue.pop() == 'foo'
-    assert await queue.size() == 0
+    assert await queue.size() == 10
+    assert await queue.pop() == 'foo9'
+    assert await queue.pop() == 'foo8'
     assert await get_ttl(redis_conn) == {'test:usage': 1}
     assert await queue.pop() is None
     assert await get_ttl(redis_conn) == {'test:usage': 1}
 
-    sleep(1)
+    await asyncio.sleep(1)
 
     assert await get_ttl(redis_conn) == {}
+    assert await queue.pop() == 'foo7'
+    assert await queue.pop() == 'foo6'
     assert await queue.pop() is None
     assert await get_ttl(redis_conn) == {'test:usage': 1}
 
-    sleep(1)
+    await asyncio.sleep(1)
 
     assert await get_ttl(redis_conn) == {}
 
@@ -107,7 +111,7 @@ async def test_cleanup(redis_conn: StrictRedis, redis_monitor):
     assert await queue.size() == 10
     assert await get_ttl(redis_conn) == {'test:usage': 1}
 
-    sleep(1)
+    await asyncio.sleep(1)
 
     await queue.cleanup()
     assert await queue.size() == 0
@@ -155,7 +159,7 @@ async def test_priority(redis_conn: StrictRedis, redis_monitor):
     assert await queue.size() == 10
     assert await get_ttl(redis_conn) == {'test:usage': 1}
 
-    sleep(1)
+    await asyncio.sleep(1)
     assert queue.idle_seconds == pytest.approx(1, 0.03)
 
     items = ','.join([(await queue.pop()) for _ in range(10)])
@@ -181,7 +185,7 @@ async def test_window(redis_conn: StrictRedis, redis_monitor):
     assert await queue.size() == 8
     assert await queue.pop('Y') is None
     assert await queue.size() == 8
-    sleep(1)
+    await asyncio.sleep(1)
     assert await queue.pop('X') == 'a7'
     assert await queue.size() == 7
     assert await queue.pop('X') is None
@@ -211,22 +215,22 @@ async def test_extras(redis_conn: StrictRedis, redis_monitor):
     assert await queue.size() == 23
 
     items = ','.join([str(await queue.pop()) for _ in range(13)])
-    assert await queue.size() == 12
-    assert items in ['b0,aX,b1,a1,b2,a2,b3,a3,b4,c0,c1,None,None']
+    assert await queue.size() == 14
+    assert items in ['b0,aX,b1,a1,b2,a2,b3,a3,b4,None,None,None,None']
 
-    sleep(1)
+    await asyncio.sleep(1)
     assert queue.idle_seconds == pytest.approx(1, 0.03)
 
-    items = ','.join([str(await queue.pop()) for _ in range(12)])
+    items = [bool(await queue.pop()) for _ in range(12)]
     assert await queue.size() == 2
-    assert items in ['a4,b5,a5,b6,a6,b7,a7,b8,a8,b9,None,None']
+    assert items == [True] * 12
 
-    sleep(1)
+    await asyncio.sleep(1)
     assert queue.idle_seconds == pytest.approx(1, 0.03)
 
-    items = ','.join([str(await queue.pop()) for _ in range(4)])
+    items = [bool(await queue.pop()) for _ in range(4)]
     assert await queue.size() == 0
-    assert items in ['a9,aY,None,None']
+    assert items == [True, True, False, False]
 
 
 @pytest.mark.asyncio

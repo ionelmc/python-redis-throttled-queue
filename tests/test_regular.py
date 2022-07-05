@@ -40,12 +40,13 @@ def test_simple(redis_conn: StrictRedis, redis_monitor):
 
 
 def test_usage_expiry(redis_conn: StrictRedis, redis_monitor):
-    queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
-    queue.push('name', 'foo')
+    queue = ThrottledQueue(redis_conn, 'test', limit=2, resolution=Resolution.SECOND)
+    for i in range(10):
+        queue.push('name', f'foo{i}')
 
-    assert len(queue) == 1
-    assert queue.pop() == 'foo'
-    assert len(queue) == 0
+    assert len(queue) == 10
+    assert queue.pop() == 'foo9'
+    assert queue.pop() == 'foo8'
     assert get_ttl(redis_conn) == {'test:usage': 1}
     assert queue.pop() is None
     assert get_ttl(redis_conn) == {'test:usage': 1}
@@ -53,6 +54,8 @@ def test_usage_expiry(redis_conn: StrictRedis, redis_monitor):
     sleep(1)
 
     assert get_ttl(redis_conn) == {}
+    assert queue.pop() == 'foo7'
+    assert queue.pop() == 'foo6'
     assert queue.pop() is None
     assert get_ttl(redis_conn) == {'test:usage': 1}
 
@@ -199,15 +202,15 @@ def test_extras(redis_conn: StrictRedis, redis_monitor):
     assert len(queue) == 23
 
     items = ','.join(str(queue.pop()) for _ in range(13))
-    assert len(queue) == 12
-    assert items in ['b0,aX,b1,a1,b2,a2,b3,a3,b4,c0,c1,None,None']
+    assert len(queue) == 14
+    assert items in ['b0,aX,b1,a1,b2,a2,b3,a3,b4,None,None,None,None']
 
     sleep(1)
     assert queue.idle_seconds == pytest.approx(1, 0.03)
 
     items = ','.join(str(queue.pop()) for _ in range(12))
     assert len(queue) == 2
-    assert items in ['a4,b5,a5,b6,a6,b7,a7,b8,a8,b9,None,None']
+    assert items in ['a4,b5,c0,a5,b6,c1,a6,b7,a7,b8,a8,b9']
 
     sleep(1)
     assert queue.idle_seconds == pytest.approx(1, 0.03)
