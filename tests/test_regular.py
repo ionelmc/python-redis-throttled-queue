@@ -149,7 +149,7 @@ def test_priority(redis_conn: StrictRedis, redis_monitor):
     assert get_ttl(redis_conn) == {'test:usage': 1}
 
     sleep(1)
-    assert queue.idle_seconds == pytest.approx(1, 0.03)
+    assert queue.idle_seconds == pytest.approx(1, 0.05)
 
     items = ','.join(queue.pop() for _ in range(10))
     assert items == 'a5,b4,a6,b3,a7,b2,a8,b1,a9,b0'
@@ -206,14 +206,14 @@ def test_extras(redis_conn: StrictRedis, redis_monitor):
     assert items in ['b0,aX,b1,a1,b2,a2,b3,a3,b4,None,None,None,None']
 
     sleep(1)
-    assert queue.idle_seconds == pytest.approx(1, 0.03)
+    assert queue.idle_seconds == pytest.approx(1, 0.05)
 
     items = ','.join(str(queue.pop()) for _ in range(12))
     assert len(queue) == 2
     assert items in ['a4,b5,c0,a5,b6,c1,a6,b7,a7,b8,a8,b9']
 
     sleep(1)
-    assert queue.idle_seconds == pytest.approx(1, 0.03)
+    assert queue.idle_seconds == pytest.approx(1, 0.05)
 
     items = ','.join(str(queue.pop()) for _ in range(4))
     assert len(queue) == 0

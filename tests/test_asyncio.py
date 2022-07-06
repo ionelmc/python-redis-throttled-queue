@@ -160,7 +160,7 @@ async def test_priority(redis_conn: StrictRedis, redis_monitor):
     assert await get_ttl(redis_conn) == {'test:usage': 1}
 
     await asyncio.sleep(1)
-    assert queue.idle_seconds == pytest.approx(1, 0.03)
+    assert queue.idle_seconds == pytest.approx(1, 0.05)
 
     items = ','.join([(await queue.pop()) for _ in range(10)])
     assert items == 'a5,b4,a6,b3,a7,b2,a8,b1,a9,b0'
@@ -219,14 +219,14 @@ async def test_extras(redis_conn: StrictRedis, redis_monitor):
     assert items in ['b0,aX,b1,a1,b2,a2,b3,a3,b4,None,None,None,None']
 
     await asyncio.sleep(1)
-    assert queue.idle_seconds == pytest.approx(1, 0.03)
+    assert queue.idle_seconds == pytest.approx(1, 0.05)
 
     items = [bool(await queue.pop()) for _ in range(12)]
     assert await queue.size() == 2
     assert items == [True] * 12
 
     await asyncio.sleep(1)
-    assert queue.idle_seconds == pytest.approx(1, 0.03)
+    assert queue.idle_seconds == pytest.approx(1, 0.05)
 
     items = [bool(await queue.pop()) for _ in range(4)]
     assert await queue.size() == 0
