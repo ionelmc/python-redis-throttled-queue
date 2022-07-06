@@ -9,7 +9,7 @@ from redis.asyncio import StrictRedis as AsyncStrictRedis
 from redis.client import StrictRedis
 from redis.commands.core import Script
 
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 __file_as_path__ = Path(__file__)
 
 logger = getLogger(__name__)
