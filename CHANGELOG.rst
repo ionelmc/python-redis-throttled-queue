@@ -2,6 +2,12 @@
 Changelog
 =========
 
+0.6.0 (2022-07-06)
+------------------
+
+* Simplified ``pop()`` code to avoid the expensive scan operations.
+  The ``'...:names`` key is now a sorted set and will be used as a template for the usage keys (``'...:usage:<window>'``).
+
 0.5.0 (2022-06-28)
 ------------------
 
