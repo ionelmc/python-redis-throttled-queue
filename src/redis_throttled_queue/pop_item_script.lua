@@ -12,7 +12,7 @@ Typical key structure (for every ITEM returned M is incremented, but only while 
     PREFIX:usage:WINDOW - zlist of (M, NAME)
     PREFIX:queue:NAME - zset of ITEM
     PREFIX:total - int of total ITEM count
-    PREFIX:names - set of NAME
+    PREFIX:names - zset of NAME
 ]]
 if #ARGV ~= 4 then
     error('POP_ITEM_SCRIPT expected 4 arguments, but got ' .. #ARGV .. ' arguments!')
@@ -20,13 +20,12 @@ end
 local PREFIX, WINDOW, LIMIT, RESOLUTION = unpack(ARGV)
 LIMIT = tonumber(LIMIT)
 local names_key = PREFIX .. ':names'
-local template_key = PREFIX .. ':template'
 local total_key = PREFIX .. ':total'
 local usage_key = PREFIX .. ':usage:' .. WINDOW
 
 local usage_count = redis.call('ZCARD', usage_key)
 if usage_count == 0 then
-    redis.call('COPY', template_key, usage_key, 'REPLACE')
+    redis.call('COPY', names_key, usage_key, 'REPLACE')
 end
 redis.call('EXPIRE', usage_key, RESOLUTION)
 
@@ -40,6 +39,6 @@ for _, name in ipairs(names) do
         redis.call('DECR', total_key)
         return value
     else
-        redis.call('ZREM', template_key, name)
+        redis.call('ZREM', names_key, name)
     end
 end

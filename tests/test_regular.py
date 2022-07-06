@@ -66,9 +66,9 @@ def test_usage_expiry(redis_conn: StrictRedis, redis_monitor):
 
 def test_dupes(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
-    for _ in range(3):
+    for _ in range(30):
         for item in range(10):
-            queue.push('aaaaaa', f'a{item}', priority=10 - item)
+            queue.push('aaaaaa', f'a{item}', priority=11 - item)
         for item in range(10):
             queue.push('bbbbbb', f'b{item}', priority=10 - item)
 
