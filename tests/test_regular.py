@@ -1,6 +1,5 @@
 from time import sleep
 from types import SimpleNamespace
-from unittest.mock import call
 
 import freezegun
 import pytest
@@ -13,7 +12,7 @@ pytest_plugins = ('pytester',)
 
 
 def get_ttl(redis_conn):
-    return {':'.join(key.split(':')[:2]): redis_conn.ttl(key) for key in redis_conn.keys('*:usage:*')}
+    return {':'.join(key.split(':')[:2]): ttl for key in redis_conn.keys('*:usage:*') for ttl in (redis_conn.ttl(key),) if ttl > 0}
 
 
 def test_simple(redis_conn: StrictRedis, redis_monitor):
@@ -173,7 +172,7 @@ def test_window(redis_conn: StrictRedis, redis_monitor):
     assert len(queue) == 8
     assert queue.pop('Y') is None
     assert len(queue) == 8
-    sleep(1)
+    sleep(1.01)
     assert queue.pop('X') == 'a7'
     assert len(queue) == 7
     assert queue.pop('X') is None
@@ -221,8 +220,8 @@ def test_extras(redis_conn: StrictRedis, redis_monitor):
 
 
 def test_mocked_resolution(mocker):
-    script = mocker.patch.object(ThrottledQueue, '_pop_item_script')
-    conn = SimpleNamespace(info=lambda: {'redis_version': '10'}, register_script=lambda _: None)
+    calls = []
+    conn = SimpleNamespace(info=lambda: {'redis_version': '10'}, function_list=lambda _: [1], fcall=lambda *args: calls.append(args))
     with freezegun.freeze_time('2022-02-22') as ft:
         queue = ThrottledQueue(
             conn,
@@ -231,25 +230,27 @@ def test_mocked_resolution(mocker):
             resolution=10,
         )
         queue.pop()
-        assert script.mock_calls == [call(client=conn, keys=(), args=('foobar', 0, '?', 10))]
+        assert calls == [
+            ('RTQ_POP', 0, 'foobar', 0, '?', 10),
+        ]
         ft.tick(9)
         queue.pop()
-        assert script.mock_calls == [
-            call(client=conn, keys=(), args=('foobar', 0, '?', 10)),
-            call(client=conn, keys=(), args=('foobar', 0, '?', 10)),
+        assert calls == [
+            ('RTQ_POP', 0, 'foobar', 0, '?', 10),
+            ('RTQ_POP', 0, 'foobar', 0, '?', 10),
         ]
         ft.tick(1)
         queue.pop()
-        assert script.mock_calls == [
-            call(client=conn, keys=(), args=('foobar', 0, '?', 10)),
-            call(client=conn, keys=(), args=('foobar', 0, '?', 10)),
-            call(client=conn, keys=(), args=('foobar', 1, '?', 10)),
+        assert calls == [
+            ('RTQ_POP', 0, 'foobar', 0, '?', 10),
+            ('RTQ_POP', 0, 'foobar', 0, '?', 10),
+            ('RTQ_POP', 0, 'foobar', 1, '?', 10),
         ]
 
 
 def test_mocked_window(mocker):
-    script = mocker.patch.object(ThrottledQueue, '_pop_item_script')
-    conn = SimpleNamespace(info=lambda: {'redis_version': '10'}, register_script=lambda _: script)
+    calls = []
+    conn = SimpleNamespace(info=lambda: {'redis_version': '10'}, function_list=lambda _: [1], fcall=lambda *args: calls.append(args))
     queue = ThrottledQueue(
         conn,
         'foobar',
@@ -257,11 +258,13 @@ def test_mocked_window(mocker):
         resolution=10,
     )
     queue.pop(window='foobar1')
-    assert script.mock_calls == [call(client=conn, keys=(), args=('foobar', 'foobar1', '?', 10))]
+    assert calls == [
+        ('RTQ_POP', 0, 'foobar', 'foobar1', '?', 10),
+    ]
     queue.pop(window='foobar2')
-    assert script.mock_calls == [
-        call(client=conn, keys=(), args=('foobar', 'foobar1', '?', 10)),
-        call(client=conn, keys=(), args=('foobar', 'foobar2', '?', 10)),
+    assert calls == [
+        ('RTQ_POP', 0, 'foobar', 'foobar1', '?', 10),
+        ('RTQ_POP', 0, 'foobar', 'foobar2', '?', 10),
     ]
 
 
