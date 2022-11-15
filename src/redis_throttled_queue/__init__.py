@@ -8,7 +8,7 @@ from packaging.version import Version
 from redis.asyncio import StrictRedis as AsyncStrictRedis
 from redis.client import StrictRedis
 
-__version__ = '0.6.0'
+__version__ = '1.0.0'
 __file_as_path__ = Path(__file__)
 
 logger = getLogger(__name__)
