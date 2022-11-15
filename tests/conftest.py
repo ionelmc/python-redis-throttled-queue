@@ -6,6 +6,8 @@ from process_tests import TestProcess
 from process_tests import wait_for_strings
 from redis.client import StrictRedis
 
+from redis_throttled_queue import ThrottledQueue
+
 
 @pytest.fixture
 def redis_server(tmp_path):
@@ -51,4 +53,5 @@ def redis_slowlog(redis_server):
 
 @pytest.fixture
 def redis_conn(redis_server):
+    ThrottledQueue._library_missing = True
     return StrictRedis(unix_socket_path=redis_server, decode_responses=True)
