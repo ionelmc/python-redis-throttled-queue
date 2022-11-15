@@ -37,7 +37,15 @@ class ThrottledQueue(object):
     _client: StrictRedis
     _library_missing: bool = True
 
-    def __init__(self, redis_client: StrictRedis, prefix: str, limit: int = 10, resolution=Resolution.SECOND, validate_version=True):
+    def __init__(
+        self,
+        redis_client: StrictRedis,
+        prefix: str,
+        limit: int = 10,
+        resolution=Resolution.SECOND,
+        validate_version=True,
+        register_library=True,
+    ):
         """
         :param redis_client:
             An instance of :class:`~StrictRedis`.
@@ -56,7 +64,8 @@ class ThrottledQueue(object):
         self.resolution = resolution
         self.last_activity = time()
         self._count_key = f'{self._prefix}:total'
-        self.register_library(redis_client)
+        if register_library:
+            self.register_library(redis_client)
         if validate_version:
             self.ensure_supported_redis(redis_client.info())
 
@@ -102,7 +111,14 @@ class AsyncThrottledQueue(ThrottledQueue):
     _client: AsyncStrictRedis
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, validate_version=False)
+        super().__init__(*args, **kwargs, validate_version=False, register_library=False)
+
+    @classmethod
+    async def register_library(cls, redis_client: StrictRedis):
+        if cls._library_missing:
+            if not await redis_client.function_list('RTQ'):
+                await redis_client.function_load(LIBRARY, replace=True)
+            cls._library_missing = False
 
     async def validate_version(self):
         self.ensure_supported_redis(await self._client.info())

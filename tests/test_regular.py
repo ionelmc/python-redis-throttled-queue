@@ -219,7 +219,7 @@ def test_extras(redis_conn: StrictRedis, redis_monitor):
     assert items in ['a9,aY,None,None']
 
 
-def test_mocked_resolution(mocker):
+def test_mocked_resolution():
     calls = []
     conn = SimpleNamespace(info=lambda: {'redis_version': '10'}, function_list=lambda _: [1], fcall=lambda *args: calls.append(args))
     with freezegun.freeze_time('2022-02-22') as ft:
@@ -248,7 +248,7 @@ def test_mocked_resolution(mocker):
         ]
 
 
-def test_mocked_window(mocker):
+def test_mocked_window():
     calls = []
     conn = SimpleNamespace(info=lambda: {'redis_version': '10'}, function_list=lambda _: [1], fcall=lambda *args: calls.append(args))
     queue = ThrottledQueue(

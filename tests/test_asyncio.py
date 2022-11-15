@@ -12,15 +12,20 @@ pytest_plugins = ('pytester',)
 
 
 @pytest.fixture
-def redis_conn(redis_server):
-    return StrictRedis(unix_socket_path=redis_server, decode_responses=True)
+async def redis_conn(redis_server):
+    """
+    Returns the async variant of the redis client.
+    """
+    ThrottledQueue._library_missing = True
+    async with StrictRedis(unix_socket_path=redis_server, decode_responses=True) as conn:
+        await ThrottledQueue.register_library(conn)
+        yield conn
 
 
 async def get_ttl(redis_conn):
     return {':'.join(key.split(':')[:2]): (await redis_conn.ttl(key)) for key in await redis_conn.keys('*:usage:*')}
 
 
-@pytest.mark.asyncio
 async def test_simple(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
     for item in range(10):
@@ -44,7 +49,6 @@ async def test_simple(redis_conn: StrictRedis, redis_monitor):
     assert await queue.size() == 0
 
 
-@pytest.mark.asyncio
 async def test_usage_expiry(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=2, resolution=Resolution.SECOND)
     for i in range(10):
@@ -70,7 +74,6 @@ async def test_usage_expiry(redis_conn: StrictRedis, redis_monitor):
     assert await get_ttl(redis_conn) == {}
 
 
-@pytest.mark.asyncio
 async def test_dupes(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
     for _ in range(3):
@@ -95,7 +98,6 @@ async def test_dupes(redis_conn: StrictRedis, redis_monitor):
     assert await queue.size() == 0
 
 
-@pytest.mark.asyncio
 async def test_cleanup(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
     for item in range(10):
@@ -119,7 +121,6 @@ async def test_cleanup(redis_conn: StrictRedis, redis_monitor):
     assert await get_ttl(redis_conn) == {}
 
 
-@pytest.mark.asyncio
 async def test_cleanup_directly(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
     for item in range(10):
@@ -133,7 +134,6 @@ async def test_cleanup_directly(redis_conn: StrictRedis, redis_monitor):
     assert await queue.pop() is None
 
 
-@pytest.mark.asyncio
 async def test_cleanup_nothing(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
     assert await queue.size() == 0
@@ -143,7 +143,6 @@ async def test_cleanup_nothing(redis_conn: StrictRedis, redis_monitor):
     assert await queue.pop() is None
 
 
-@pytest.mark.asyncio
 async def test_priority(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
     for item in range(10):
@@ -169,7 +168,6 @@ async def test_priority(redis_conn: StrictRedis, redis_monitor):
     assert await get_ttl(redis_conn) == {'test:usage': 1}
 
 
-@pytest.mark.asyncio
 async def test_window(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=1, resolution=Resolution.SECOND)
     for item in range(10):
@@ -196,7 +194,6 @@ async def test_window(redis_conn: StrictRedis, redis_monitor):
     assert await queue.size() == 6
 
 
-@pytest.mark.asyncio
 async def test_extras(redis_conn: StrictRedis, redis_monitor):
     queue = ThrottledQueue(redis_conn, 'test', limit=5, resolution=Resolution.SECOND)
     for item in range(10):
@@ -233,7 +230,6 @@ async def test_extras(redis_conn: StrictRedis, redis_monitor):
     assert items == [True, True, False, False]
 
 
-@pytest.mark.asyncio
 async def test_validation():
     conn = SimpleNamespace(info=lambda: {'redis_version': '10'}, register_script=lambda _: None)
     pytest.raises(TypeError, ThrottledQueue, conn, b'caca')
