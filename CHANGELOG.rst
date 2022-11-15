@@ -1,6 +1,14 @@
-
+1
 Changelog
 =========
+
+1.0.0 (2022-11-15)
+------------------
+
+* Switched from eval scripts to redis functions. Minimum Redis server version becomes 7.0.
+* Replaced unpack calls with direct indexing in the Lua functions.
+* These changes improve the push operation by at least 6%.
+
 
 0.6.0 (2022-07-06)
 ------------------
