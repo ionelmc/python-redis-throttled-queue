@@ -16,6 +16,7 @@ def test_push(
     names,
     push_names,
     redis_conn: StrictRedis,
+    redis_slowlog,
     resolution,
 ):
     queue = ThrottledQueue(redis_conn, 'test', limit=limit, resolution=resolution)

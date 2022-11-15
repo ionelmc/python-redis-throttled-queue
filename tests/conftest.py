@@ -1,3 +1,6 @@
+from operator import itemgetter
+from textwrap import indent
+
 import pytest
 from process_tests import TestProcess
 from process_tests import wait_for_strings
@@ -10,7 +13,19 @@ from redis_throttled_queue import ThrottledQueue
 def redis_server(tmp_path):
     redis_socket = str(tmp_path.joinpath('redis.sock'))
     with TestProcess(
-        'redis-server', '--port', '0', '--save', '', '--appendonly', 'yes', '--dir', tmp_path, '--unixsocket', redis_socket
+        'redis-server',
+        '--slowlog-log-slower-than',
+        '100',
+        '--port',
+        '0',
+        '--save',
+        '',
+        '--appendonly',
+        'yes',
+        '--dir',
+        tmp_path,
+        '--unixsocket',
+        redis_socket,
     ) as redis_server:
         wait_for_strings(redis_server.read, 2, 'ready to accept connections')
         yield redis_socket
@@ -29,9 +44,10 @@ def redis_monitor(redis_server):
 def redis_slowlog(redis_server):
     yield
     client = StrictRedis(unix_socket_path=redis_server, decode_responses=True)
-    print('SLOWLOG:')
-    for i in client.slowlog_get():
-        print('  ', i)
+    print(f'SLOWLOG ({client.slowlog_len()} entries):')
+    for item in sorted(client.slowlog_get(), key=itemgetter('duration'), reverse=True):
+        command = item["command"].decode()
+        print(f'{item["duration"]:5}ms: {indent(command, "         ").strip()}')
 
 
 @pytest.fixture
