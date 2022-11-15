@@ -6,8 +6,6 @@ from process_tests import TestProcess
 from process_tests import wait_for_strings
 from redis.client import StrictRedis
 
-from redis_throttled_queue import ThrottledQueue
-
 
 @pytest.fixture
 def redis_server(tmp_path):
@@ -18,10 +16,12 @@ def redis_server(tmp_path):
         '100',
         '--port',
         '0',
+        '--appendonly',
+        'no',
         '--save',
         '',
-        '--appendonly',
-        'yes',
+        '--maxmemory',
+        '4G',
         '--dir',
         tmp_path,
         '--unixsocket',
@@ -35,7 +35,6 @@ def redis_server(tmp_path):
 @pytest.fixture
 def redis_monitor(redis_server):
     with TestProcess('redis-cli', '-s', redis_server, 'monitor') as redis_monitor:
-        ThrottledQueue._library_missing = True
         yield
         print(redis_monitor.read())
 
