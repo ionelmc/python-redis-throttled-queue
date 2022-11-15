@@ -26,5 +26,14 @@ def redis_monitor(redis_server):
 
 
 @pytest.fixture
+def redis_slowlog(redis_server):
+    yield
+    client = StrictRedis(unix_socket_path=redis_server, decode_responses=True)
+    print('SLOWLOG:')
+    for i in client.slowlog_get():
+        print('  ', i)
+
+
+@pytest.fixture
 def redis_conn(redis_server):
     return StrictRedis(unix_socket_path=redis_server, decode_responses=True)
