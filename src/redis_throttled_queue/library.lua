@@ -22,7 +22,11 @@ redis.register_function('RTQ_PUSH', function(KEYS, ARGV)
     if #ARGV ~= 4 then
         error('RTQ_PUSH expected 4 arguments, but got ' .. #ARGV .. ' arguments!')
     end
-    local PREFIX, NAME, PRIORITY, DATA = unpack(ARGV)
+    local PREFIX = ARGV[1]
+    local NAME = ARGV[2]
+    local PRIORITY = ARGV[3]
+    local DATA = ARGV[4]
+
     local names_key = PREFIX .. ':names'
     local queue_key = PREFIX .. ':queue:' .. NAME
     local total_key = PREFIX .. ':total'
@@ -56,8 +60,11 @@ redis.register_function('RTQ_POP', function(KEYS, ARGV)
     if #ARGV ~= 4 then
         error('RTQ_POP expected 4 arguments, but got ' .. #ARGV .. ' arguments!')
     end
-    local PREFIX, WINDOW, LIMIT, RESOLUTION = unpack(ARGV)
-    LIMIT = tonumber(LIMIT)
+    local PREFIX = ARGV[1]
+    local WINDOW = ARGV[2]
+    local LIMIT = tonumber(ARGV[3])
+    local RESOLUTION = ARGV[4]
+
     local names_key = PREFIX .. ':names'
     local total_key = PREFIX .. ':total'
     local usage_key = PREFIX .. ':usage:' .. WINDOW
@@ -98,7 +105,7 @@ redis.register_function('RTQ_CLEANUP', function(KEYS, ARGV)
     if #ARGV ~= 1 then
         error('RTQ_CLEANUP expected 1 arguments, but got ' .. #ARGV .. ' arguments!')
     end
-    local PREFIX = unpack(ARGV)
+    local PREFIX = ARGV[1]
     local pattern = PREFIX .. ':*'
 
     local cursor = '0'
