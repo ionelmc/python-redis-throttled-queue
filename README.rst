@@ -16,7 +16,7 @@ Overview
       - | |version| |wheel| |supported-versions| |supported-implementations|
         | |commits-since|
 .. |docs| image:: https://readthedocs.org/projects/python-redis-throttled-queue/badge/?style=flat
-    :target: https://python-redis-throttled-queue.readthedocs.io/
+    :target: https://readthedocs.org/projects/python-redis-throttled-queue/
     :alt: Documentation Status
 
 .. |github-actions| image:: https://github.com/ionelmc/python-redis-throttled-queue/actions/workflows/github-actions.yml/badge.svg
