@@ -12,7 +12,7 @@ Overview
     * - tests
       - |github-actions| |codecov|
     * - package
-      - |version| |wheel| |supported-versions| |supported-implementations|| |commits-since|
+      - |version| |wheel| |supported-versions| |supported-implementations| |commits-since|
 .. |docs| image:: https://readthedocs.org/projects/python-redis-throttled-queue/badge/?style=flat
     :target: https://readthedocs.org/projects/python-redis-throttled-queue/
     :alt: Documentation Status
