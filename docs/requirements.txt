@@ -1,2 +1,4 @@
 sphinx>=1.3
 sphinx-py3doc-enhanced-theme
+redis==5.0.1
+enum-tools[sphinx]

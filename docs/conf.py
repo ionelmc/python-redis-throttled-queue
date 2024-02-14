@@ -10,6 +10,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
+    'enum_tools.autoenum',
 ]
 source_suffix = '.rst'
 master_doc = 'index'

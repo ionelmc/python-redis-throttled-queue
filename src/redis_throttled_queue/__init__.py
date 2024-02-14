@@ -54,7 +54,7 @@ class ThrottledQueue:
         :param limit:
             Throttling limit. The queue won't retrieve more items in the given resolution for a given `key`.
         :param resolution:
-            Resolution to use.
+            Resolution to use. This decides how many time window keys you will have in Redis.
         """
         self._client = redis_client
         if not isinstance(prefix, str):
@@ -71,20 +71,33 @@ class ThrottledQueue:
 
     @classmethod
     def ensure_supported_redis(cls, info: dict):
+        """
+        Redis version validator (must be >=7). Called from ``__init__``, if enabled.
+        """
         version = info['redis_version']
         if Version(version) < Version('7.0'):
             raise RuntimeError(f'Redis 7.0 is the minimum version supported. The server reported version {version!r}.')
 
     def __len__(self):
+        """
+        Get queue length.
+        :return:
+        """
         return int(self._client.get(self._count_key) or 0)
 
     def push(self, name: str, data: Union[str, bytes], *, priority: int = 0):
+        """
+        Push an item.
+        """
         if ':' in name:
             raise ValueError('Incorrect value for `key`. Cannot contain ":".')
         self.last_activity = time()
         return self._client.fcall('RTQ_PUSH', 0, self._prefix, name, priority, data)
 
     def pop(self, window: Union[str, bytes, int] = Ellipsis) -> Union[str, bytes, None]:
+        """
+        Pop an item, if any available.
+        """
         if window is Ellipsis:
             window = int(time()) // self.resolution % 60
         value = self._client.fcall('RTQ_POP', 0, self._prefix, window, self.limit, int(self.resolution))
@@ -94,13 +107,22 @@ class ThrottledQueue:
 
     @property
     def idle_seconds(self) -> float:
+        """
+        Idle time counter.
+        """
         return time() - self.last_activity
 
     def cleanup(self):
+        """
+        Cleanup all associated redis data to this queue.
+        """
         return self._client.fcall('RTQ_CLEANUP', 0, self._prefix)
 
     @classmethod
     def register_library(cls, redis_client: StrictRedis):
+        """
+        Registers the redis functions. Called from ``__init__``, if enabled.
+        """
         if cls._library_missing:
             if not redis_client.function_list('RTQ'):
                 redis_client.function_load(LIBRARY, replace=True)
@@ -108,31 +130,53 @@ class ThrottledQueue:
 
 
 class AsyncThrottledQueue(ThrottledQueue):
+    """
+    Asyncio variant of the queue.
+    """
+
     _client: AsyncStrictRedis
 
     def __init__(self, *args, **kwargs):
+        """
+        Overrides certain options because they cannot work anymore: ``validate_version=False``, ``register_library=False``.
+        """
         super().__init__(*args, **kwargs, validate_version=False, register_library=False)
 
     @classmethod
     async def register_library(cls, redis_client: StrictRedis):
+        """
+        You have to call this manually.
+        """
         if cls._library_missing:
             if not await redis_client.function_list('RTQ'):
                 await redis_client.function_load(LIBRARY, replace=True)
             cls._library_missing = False
 
     async def validate_version(self):
+        """
+        You have to call this manually.
+        """
         self.ensure_supported_redis(await self._client.info())
 
     async def size(self):
+        """
+        Asyncio variant for ``__len__``.
+        """
         return int(await self._client.get(self._count_key) or 0)
 
     async def push(self, name: str, data: Union[str, bytes], *, priority: int = 0):
+        """
+        Asyncio variant for ``push``.
+        """
         if ':' in name:
             raise ValueError('Incorrect value for `key`. Cannot contain ":".')
         self.last_activity = time()
         return await self._client.fcall('RTQ_PUSH', 0, self._prefix, name, priority, data)
 
     async def pop(self, window: Union[str, bytes, int] = Ellipsis) -> Union[str, bytes, None]:
+        """
+        Asyncio variant for ``pop``.
+        """
         if window is Ellipsis:
             window = int(time()) // self.resolution % 60
         value = await self._client.fcall('RTQ_POP', 0, self._prefix, window, self.limit, int(self.resolution))
@@ -140,9 +184,8 @@ class AsyncThrottledQueue(ThrottledQueue):
             self.last_activity = time()
         return value
 
-    @property
-    def idle_seconds(self) -> float:
-        return time() - self.last_activity
-
     async def cleanup(self):
+        """
+        Asyncio variant for ``cleanup``.
+        """
         return await self._client.fcall('RTQ_CLEANUP', 0, self._prefix)

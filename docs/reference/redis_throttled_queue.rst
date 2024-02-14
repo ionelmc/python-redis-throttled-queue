@@ -7,3 +7,5 @@ redis_throttled_queue
 
 .. automodule:: redis_throttled_queue
     :members:
+    :undoc-members:
+    :special-members: __init__, __len__
