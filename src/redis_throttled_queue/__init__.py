@@ -22,7 +22,7 @@ class Resolution(IntEnum):
 LIBRARY = __file_as_path__.with_name('library.lua').read_text()
 
 
-class ThrottledQueue(object):
+class ThrottledQueue:
     """
     Queue system with key-based throttling implemented over Redis.
 

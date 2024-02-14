@@ -2,13 +2,10 @@
 
 default_context:
     allow_tests_inside_package: 'no'
-    appveyor: 'no'
     c_extension_function: '-'
     c_extension_module: '-'
     c_extension_optional: 'no'
     c_extension_support: 'no'
-    c_extension_test_pypi: 'no'
-    c_extension_test_pypi_username: '-'
     codacy: 'no'
     codacy_projectid: '[Get ID from https://app.codacy.com/app/ionelmc/python-redis-throttled-queue/settings]'
     codeclimate: 'no'
@@ -18,40 +15,33 @@ default_context:
     coveralls: 'no'
     distribution_name: redis-throttled-queue
     email: contact@ionelmc.ro
+    formatter_quote_style: single
     full_name: Ionel Cristian Mărieș
     github_actions: 'yes'
     github_actions_osx: 'no'
     github_actions_windows: 'no'
-    legacy_python: 'no'
     license: BSD 2-Clause License
-    linter: flake8
     package_name: redis_throttled_queue
     pre_commit: 'yes'
-    pre_commit_formatter: blue
     project_name: redis-throttled-queue
     project_short_description: Queue system with key-based throttling implemented over Redis.
     pypi_badge: 'yes'
     pypi_disable_upload: 'no'
-    release_date: '2022-07-06'
+    release_date: '2022-11-15'
     repo_hosting: github.com
     repo_hosting_domain: github.com
     repo_main_branch: main
     repo_name: python-redis-throttled-queue
     repo_username: ionelmc
-    requiresio: 'yes'
     scrutinizer: 'no'
-    setup_py_uses_pytest_runner: 'no'
     setup_py_uses_setuptools_scm: 'no'
     sphinx_docs: 'yes'
     sphinx_docs_hosting: https://python-redis-throttled-queue.readthedocs.io/
     sphinx_doctest: 'no'
     sphinx_theme: sphinx-py3doc-enhanced-theme
-    test_matrix_configurator: 'no'
     test_matrix_separate_coverage: 'yes'
-    travis: 'no'
-    travis_osx: 'no'
-    version: 0.6.0
+    version: 1.0.0
     version_manager: bump2version
     website: http://blog.ionelmc.ro
     year_from: '2022'
-    year_to: '2022'
+    year_to: '2024'

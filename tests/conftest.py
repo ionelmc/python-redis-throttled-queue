@@ -47,7 +47,7 @@ def redis_slowlog(redis_server):
     client = StrictRedis(unix_socket_path=redis_server, decode_responses=True)
     print(f'SLOWLOG ({client.slowlog_len()} entries):')
     for item in sorted(client.slowlog_get(), key=itemgetter('duration'), reverse=True):
-        command = item["command"].decode()
+        command = item['command'].decode()
         print(f'{item["duration"]:5}ms: {indent(command, "         ").strip()}')
 
 

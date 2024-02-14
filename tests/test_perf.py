@@ -27,7 +27,7 @@ def test_push(
 
     def run():
         for name in range(push_names):
-            for item in range(items):
+            for _ in range(items):
                 queue.push(f'N{name}', str(name))
 
     benchmark.pedantic(run, setup=setup, iterations=1, rounds=10)

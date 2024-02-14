@@ -151,7 +151,7 @@ async def test_priority(redis_conn: StrictRedis, redis_monitor):
         await queue.push('bbbbbb', f'b{item}', priority=item)
 
     assert await queue.size() == 20
-    items = ','.join([await (queue.pop()) for _ in range(10)])
+    items = ','.join([await queue.pop() for _ in range(10)])
     assert items == 'a0,b9,a1,b8,a2,b7,a3,b6,a4,b5'
     assert await queue.size() == 10
     assert await queue.pop() is None

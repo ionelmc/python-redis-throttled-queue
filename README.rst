@@ -10,7 +10,7 @@ Overview
     * - docs
       - |docs|
     * - tests
-      - | |github-actions| |requires|
+      - | |github-actions|
         | |codecov|
     * - package
       - | |version| |wheel| |supported-versions| |supported-implementations|
@@ -23,13 +23,9 @@ Overview
     :alt: GitHub Actions Build Status
     :target: https://github.com/ionelmc/python-redis-throttled-queue/actions
 
-.. |requires| image:: https://requires.io/github/ionelmc/python-redis-throttled-queue/requirements.svg?branch=main
-    :alt: Requirements Status
-    :target: https://requires.io/github/ionelmc/python-redis-throttled-queue/requirements/?branch=main
-
 .. |codecov| image:: https://codecov.io/gh/ionelmc/python-redis-throttled-queue/branch/main/graphs/badge.svg?branch=main
     :alt: Coverage Status
-    :target: https://codecov.io/github/ionelmc/python-redis-throttled-queue
+    :target: https://app.codecov.io/github/ionelmc/python-redis-throttled-queue
 
 .. |version| image:: https://img.shields.io/pypi/v/redis-throttled-queue.svg
     :alt: PyPI Package latest release
