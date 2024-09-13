@@ -21,9 +21,10 @@ version = release = '1.0.0'
 pygments_style = 'trac'
 templates_path = ['.']
 extlinks = {
-    'issue': ('https://github.com/ionelmc/python-redis-throttled-queue/issues/%s', '#'),
-    'pr': ('https://github.com/ionelmc/python-redis-throttled-queue/pull/%s', 'PR #'),
+    'issue': ('https://github.com/ionelmc/python-redis-throttled-queue/issues/%s', '#%s'),
+    'pr': ('https://github.com/ionelmc/python-redis-throttled-queue/pull/%s', 'PR #%s'),
 }
+
 html_theme = 'furo'
 html_theme_options = {
     'githuburl': 'https://github.com/ionelmc/python-redis-throttled-queue/',

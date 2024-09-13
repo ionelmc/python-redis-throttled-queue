@@ -1,5 +1,5 @@
 name: build
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 jobs:
   test:
     name: {{ '${{ matrix.name }}' }}
@@ -65,3 +65,11 @@ jobs:
         TOXPYTHON: '{{ '${{ matrix.toxpython }}' }}'
       run: >
         tox -e {{ '${{ matrix.tox_env }}' }} -v
+  finish:
+    needs: test
+    if: {{ '${{ always() }}' }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: codecov/codecov-action@v3
+      with:
+        CODECOV_TOKEN: {% raw %}${{ secrets.CODECOV_TOKEN }}{% endraw %}

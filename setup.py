@@ -67,6 +67,6 @@ setup(
     extras_require={
         # eg:
         #   "rst": ["docutils>=0.11"],
-        #   ":python_version=="2.6"": ["argparse"],
+        #   ":python_version=='3.8'": ["backports.zoneinfo"],
     },
 )
